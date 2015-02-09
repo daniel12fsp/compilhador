@@ -1,0 +1,54 @@
+algoritmo while
+inicio
+	variavel i: inteiro;
+$d
+	i = 0;
+	enquanto i < 10 faca 
+		escreva(i, "\n");
+		i = i + 1;
+	fimenquanto;
+fim
+
+/*
+=================================================
+Algoritmo while
+-------------------------------------------------
+Var i @0 n=1 (Int)
+-------------------------------------------------
+Global
+-------------------------------------------------
+Funcao "while" @0 #0 -> (Nada)
+-------------------------------------------------
+Universo
+-------------------------------------------------
+Tipo inteiro (Int)
+Tipo void (Nada)
+Funcao "tamanho" @0 #1 -> (Int)
+  Var vLEN @0 n=0 (Vetor[] = (Nada))
+-------------------------------------------------
+=================================================
+-----------------------
+ marcador: UP
+ codeSize: 43
+ dataSize: 0
+   mainPC: 0
+startStrz: 41
+-----------------------
+0: enter 0 1
+3: const 0
+8: store 0
+10: load 0
+12: const 10
+17: jge 39
+20: load 0
+22: printi
+23: prints 41
+26: load 0
+28: const 1
+33: add
+34: store 0
+36: jmp 10
+39: exit
+40: return
+41: \n
+*/

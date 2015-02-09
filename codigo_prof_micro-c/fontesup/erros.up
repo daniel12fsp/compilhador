@@ -1,0 +1,86 @@
+/*
+	Teste de tabela de simbolos, Marco 2014
+	-- erros que minimamente devem ser observados
+*/
+
+algoritmo MuitosErros
+
+constante c1 = 1;
+
+/*
+variavel i: inteiro;
+variavel x: c1;
+/* inteiro esperado */
+variavel y: string;
+/*---| inteiro esperado */
+*/
+variavel i, j: inteiro;
+/*--| i já declarado */
+
+procedimento foo (x: inteiro) 
+inicio
+    retorne 3;
+/*---------| tentativa de retornar valor em procedimento sem retorno */
+fim
+  
+procedimento bar (c: inteiro): inteiro
+inicio
+    se c > 4 entao retorne; senao retorne c; fimse;
+/*-------------------| retorne deveria retornar um valor */
+/*-----------------------------------| sem return -- erro a ser detectado soh em runtime */
+fim
+  
+procedimento foobar (p1: inteiro, p2: inteiro): inteiro
+inicio
+    retorne p1+p2;
+fim
+
+inicio
+    variavel v1, v2: inteiro[];
+    v2 = novo inteiro {1, 2, 3};
+    i = 1;
+    int = 3;
+/*--| int nao foi declarado */
+    v1 = 3;
+/*-------| tipos incompativeis em assinalamento */
+    v1[0] = 3;
+/*-------| atribuicao para vetor nao alocado -- RUNTIME! */
+    i = 3 + v + 1;
+/*----------| v nao declarado */
+/*----------| operandos devem ser do tipo int */
+    i(3);
+/*--| objeto chamado nao eh funcao */
+/*--| mais parametros passados que declarados */
+    /* escreva(foo); */
+/*--------| objeto deveria lista de expressaos/const-string */
+    /*escreva(novo inteiro {});*/
+/*------------------| numero esperado */
+    foobar(3, i, 4);
+/*----------| mais parametros chamados que declarados */
+    foobar(3);
+/*-------| menos parametros chamados que declarados */
+    foobar(3, v2);
+/*------| tipo de parametro nao casa */
+    se i == foo() entao i = i + v2; fimse
+/*------| impossivel carregar esse valor */
+/*---------------| operandos deveriam ser do tipo inteiro */
+    se v1 > v2 entao i = - v2; fimse;
+/*--------| comparacao invalida */
+/*--------------------| operando deve ser do tipo int */
+    i();
+/*------| nao eh uma funcao */
+    i = tamanho(i);
+/*------| tipo de parametro eh incompativel */
+    v1 = novo inteiro[v2];
+/*---------------| tamanho de vetor deveria ser inteiro */
+    i = 3 * g;
+/*----------| g nao definido */
+/*----------| operandos devem ser do tipo int */
+    /*i = foo[2];*/
+/*-------| impossivel carregar este valor */
+    i = j[2];
+/*--------| j nao eh um vetor */
+    i = v2[-1];
+/*----------| indice invalido -- RUNTIME! */
+fim
+

@@ -1,0 +1,43 @@
+/* exemplo */
+algoritmo exemploDeCodigo
+
+variavel a: inteiro;
+
+procedimento sumA(p1: inteiro): inteiro
+inicio
+  retorne p1 + a;
+fim
+
+inicio
+  a = 4;
+  escreva("3+a: ", sumA(3), "\n");
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 49
+ dataSize: 1
+   mainPC: 13
+startStrz: 41
+-----------------------
+0: enter 1 1
+3: load 0
+5: getstatic 0
+8: add
+9: exit
+10: return
+11: trap 1
+13: enter 0 0
+16: const 4
+21: putstatic 0
+24: prints 41
+27: const 3
+32: call 0
+35: printi
+36: prints 47
+39: exit
+40: return
+41: 3+a: 
+47: \n
+*/

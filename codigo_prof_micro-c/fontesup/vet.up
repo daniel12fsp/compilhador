@@ -1,0 +1,115 @@
+/* vet 1 */
+
+algoritmo vetor
+inicio
+	variavel custo, i: inteiro;
+	variavel v, v2: inteiro[];
+$d
+    v = novo inteiro { 61, 57, 72, 18, 8, 30, 21, 93, 67, 15, 78, 12, 81, 32, 27, 92 };
+    v2 = novo inteiro [tamanho(v)];
+fim
+/*
+=================================================
+Algoritmo vetor
+-------------------------------------------------
+Var custo @0 n=1 (Int)
+Var i @1 n=1 (Int)
+Var v @2 n=1 (Vetor[] = (Int))
+Var v2 @3 n=1 (Vetor[] = (Int))
+-------------------------------------------------
+Global
+-------------------------------------------------
+Funcao "vetor" @0 #0 -> (Nada)
+-------------------------------------------------
+Universo
+-------------------------------------------------
+Tipo inteiro (Int)
+Tipo void (Nada)
+Funcao "tamanho" @0 #1 -> (Int)
+  Var vLEN @0 n=0 (Vetor[] = (Nada))
+-------------------------------------------------
+=================================================
+-----------------------
+ marcador: UP
+ codeSize: 231
+ dataSize: 0
+   mainPC: 0
+startStrz: 231
+-----------------------
+0: enter 0 5
+3: const 16
+8: newarray 
+9: store 4
+11: load 4
+13: load 4
+15: const 0
+20: const 61
+25: astore
+26: load 4
+28: const 1
+33: const 57
+38: astore
+39: load 4
+41: const 2
+46: const 72
+51: astore
+52: load 4
+54: const 3
+59: const 18
+64: astore
+65: load 4
+67: const 4
+72: const 8
+77: astore
+78: load 4
+80: const 5
+85: const 30
+90: astore
+91: load 4
+93: const 6
+98: const 21
+103: astore
+104: load 4
+106: const 7
+111: const 93
+116: astore
+117: load 4
+119: const 8
+124: const 67
+129: astore
+130: load 4
+132: const 9
+137: const 15
+142: astore
+143: load 4
+145: const 10
+150: const 78
+155: astore
+156: load 4
+158: const 11
+163: const 12
+168: astore
+169: load 4
+171: const 12
+176: const 81
+181: astore
+182: load 4
+184: const 13
+189: const 32
+194: astore
+195: load 4
+197: const 14
+202: const 27
+207: astore
+208: load 4
+210: const 15
+215: const 92
+220: astore
+221: store 2
+223: load 2
+225: arraylength
+226: newarray 
+227: store 3
+229: exit
+230: return
+*/

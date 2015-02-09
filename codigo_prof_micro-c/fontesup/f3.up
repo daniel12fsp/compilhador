@@ -1,0 +1,23 @@
+/* funcoes */
+
+algoritmo testeFuncoes
+
+constante MAX = 10;
+variavel g: inteiro;
+
+procedimento func()
+inicio
+	variavel lf: inteiro;
+	escreva(MAX, " ", g, " ", lf, "\n");
+	retorne 0; /* usando retorne */
+fim
+
+inicio
+	variavel l: inteiro;
+	func();
+fim
+
+
+/*
+-- line 12 col 10: tentativa de retornar valor em procedimento definido sem retorno
+*/

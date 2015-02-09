@@ -1,0 +1,192 @@
+/*
+	testes
+*/
+
+algoritmo DiversosTestesPortugol
+
+constante TAM = 10;
+variavel c: inteiro;
+variavel m: inteiro[];
+
+inicio
+	variavel m3: inteiro[];
+	m3 = novo inteiro {11, 23, 30, 42, 57, 60};
+	
+	variavel i: inteiro;
+	
+	i = 0;
+	enquanto i < 6 faca
+		escreva("m3[", i, "] = ", m3[i]);
+		se m3[i] < 30 entao
+			escreva(" < 30");
+		senao 	se m3[i] == 30 entao
+					escreva(" = 30");
+				senao
+					escreva(" > 30");
+			  	fimse;
+		fimse;
+		escreva("\n");		
+		i = i + 1;
+	fimenquanto
+
+	variavel m4: inteiro[]; m4 = novo inteiro [2]; m4[0] = 10; m4[1] = 20;
+	variavel m5: inteiro[]; m5 = novo inteiro {10, 20};	
+	
+	para i = 0 ate 5 faca
+		escreva("m3[", i, "] = ", m3[i], "\n");
+	fimpara
+	$d
+fim
+
+/*
+=================================================
+Algoritmo DiversosTestesPortugol
+-------------------------------------------------
+Var m3 @0 n=1 (Vetor[] = (Int))
+Var _end_1 @1 n=1 (Int)
+Var i @2 n=1 (Int)
+Var m4 @3 n=1 (Vetor[] = (Int))
+Var m5 @4 n=1 (Vetor[] = (Int))
+Var _end_5 @5 n=1 (Int)
+-------------------------------------------------
+Global
+-------------------------------------------------
+Const TAM = 10 (Int)
+Var c @0 n=0 (Int)
+Var m @1 n=0 (Vetor[] = (Int))
+Funcao "DiversosTestesPortugol" @0 #0 -> (Nada)
+-------------------------------------------------
+Universo
+-------------------------------------------------
+Tipo inteiro (Int)
+Tipo void (Nada)
+Funcao "tamanho" @0 #1 -> (Int)
+  Var vLEN @0 n=0 (Vetor[] = (Nada))
+-------------------------------------------------
+=================================================
+-----------------------
+ marcador: UP
+ codeSize: 344
+ dataSize: 2
+   mainPC: 0
+startStrz: 304
+-----------------------
+0: enter 0 6
+3: const 6
+8: newarray 
+9: store 1
+11: load 1
+13: load 1
+15: const 0
+20: const 11
+25: astore
+26: load 1
+28: const 1
+33: const 23
+38: astore
+39: load 1
+41: const 2
+46: const 30
+51: astore
+52: load 1
+54: const 3
+59: const 42
+64: astore
+65: load 1
+67: const 4
+72: const 57
+77: astore
+78: load 1
+80: const 5
+85: const 60
+90: astore
+91: store 0
+93: const 0
+98: store 2
+100: load 2
+102: const 6
+107: jge 182
+110: prints 304
+113: load 2
+115: printi
+116: prints 308
+119: load 0
+121: load 2
+123: aload
+124: printi
+125: load 0
+127: load 2
+129: aload
+130: const 30
+135: jge 144
+138: prints 313
+141: jmp 166
+144: load 0
+146: load 2
+148: aload
+149: const 30
+154: jne 163
+157: prints 319
+160: jmp 166
+163: prints 325
+166: prints 331
+169: load 2
+171: const 1
+176: add
+177: store 2
+179: jmp 100
+182: const 2
+187: newarray 
+188: store 3
+190: load 3
+192: const 0
+197: const 10
+202: astore
+203: load 3
+205: const 1
+210: const 20
+215: astore
+216: const 2
+221: newarray 
+222: store 5
+224: load 5
+226: load 5
+228: const 0
+233: const 10
+238: astore
+239: load 5
+241: const 1
+246: const 20
+251: astore
+252: store 4
+254: const 0
+259: store 2
+261: load 2
+263: const 5
+268: jgt 302
+271: prints 333
+274: load 2
+276: printi
+277: prints 337
+280: load 0
+282: load 2
+284: aload
+285: printi
+286: prints 342
+289: load 2
+291: const 1
+296: add
+297: store 2
+299: jmp 261
+302: exit
+303: return
+304: m3[
+308: ] = 
+313:  < 30
+319:  = 30
+325:  > 30
+331: \n
+333: m3[
+337: ] = 
+342: \n
+*/

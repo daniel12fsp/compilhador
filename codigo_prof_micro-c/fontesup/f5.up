@@ -1,0 +1,55 @@
+/* funcoes */
+
+algoritmo testeFuncoes
+
+constante MAX = 10;
+variavel g: inteiro;
+
+procedimento func(p: inteiro): inteiro
+inicio
+	variavel lf: inteiro;
+	escreva(MAX, " ", g, " ", lf, " ", p, "\n");
+	retorne 0; /* usando retorne */
+fim
+
+inicio
+	variavel l: inteiro;
+	l = func(5);
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 63
+ dataSize: 1
+   mainPC: 40
+startStrz: 55
+-----------------------
+0: enter 1 2
+3: const 10
+8: printi
+9: prints 55
+12: getstatic 0
+15: printi
+16: prints 57
+19: load 1
+21: printi
+22: prints 59
+25: load 0
+27: printi
+28: prints 61
+31: const 0
+36: exit
+37: return
+38: trap 1
+40: enter 0 1
+43: const 5
+48: call 0
+51: store 0
+53: exit
+54: return
+55:  
+57:  
+59:  
+61: \n
+*/

@@ -1,0 +1,61 @@
+/*
+	Alunos : Daniel(21201910) e Denys(?????????)
+*/
+COMPILER MicroPortugol
+
+CHARACTERS
+	semAspas 	= ANY - '"'.
+	letra 		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_".
+	digito 		= "0123456789".
+
+TOKENS
+	id 		    = letra {letra | digito}.
+	strConst 	= '"' {semAspas} '"'.
+	num 		= ['-'] digito { digito } .
+
+PRAGMAS
+	option = "$d".	(. ts.dump(); .)
+
+COMMENTS FROM "/*" TO "*/" NESTED
+
+IGNORE '\r' + '\n' + '\t'
+
+PRODUCTIONS
+
+MicroPortugol = "Algoritmo" Linhas. 
+Linhas =  Comando { Comando }.
+Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Chamada_funcao |
+			Assinalamento_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def.
+Bloco_def = "inicio"  Linhas "fim" .
+Procedimento_def = "procedimento" id  "(" [id : Tipo { "," id : Tipo }] ")" [":" Tipo] "inicio" Linhas ["retorne" Exp] "fim".
+Variavel_def = "variavel" id {"," id} : Tipo.
+Tipo = id [ "[" "]"].
+/* Inicio - EBNF Repeticao */
+Repeticao_def = Para_def | Enquanto_def | Repita_def.
+Para_def = "para" Assinalamento_def "ate" Exp "faca" Linhas "fimpara".
+Enquanto_def = "enquanto" Condicao_def "faca" Linhas "fimenquanto".
+Repita_def = "repita" Linhas  "ate" Condicao_def ";" .
+/* Fim    - EBNF Repeticao */
+Chamada_funcao = id "(" Exp { "," Exp} ")".
+Assinalamento_def = id "=" (Exp | Novo_def) .
+Novo_def = "novo" "inteiro" ( "[" Exp "]" | {Exp { "," Exp })
+Se_def = "se" Condicao_def "entao" Linhas ["senao" Linhas] "fimse".
+Caso_def = "caso" variavel Caso_seja_def { Caso_seja_def} "outrocaso" Linhas "fimcaso".
+Caso_seja_def = "seja" num "faca" linhas.
+Escreva_def = "escreva" "(" strConst {"," strConst} ")" ";".
+Leia = "leia" "(" strConst {"," strConst} ")" ";".
+/*Duvida, o valor da constante eh estatica logo so pode ser numeros o valor recebido*/
+Constante_def = "constante" id = id . 
+Condicao_def = Exp Op Exp.
+Op_relacional = "==" | "!=" | ">" | ">=" | "<".
+Fator = Variavel[ ("*"|"/") Variavel].
+Termo = Fator [ ( "+" |  "-" ) Fator ].
+Exp = Termo { Termo }.
+Variavel = num | id ["[" "]"] | Chamada_funcao.
+
+
+
+
+
+
+

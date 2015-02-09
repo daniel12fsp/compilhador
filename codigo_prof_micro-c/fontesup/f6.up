@@ -1,0 +1,62 @@
+/* funcoes */
+
+algoritmo testeFuncoes
+
+constante MAX = 10;
+variavel g: inteiro;
+
+procedimento func(p: inteiro): inteiro
+inicio
+	variavel i: inteiro;
+	i = p;
+	enquanto i > 0 faca
+		se i == MAX entao
+			retorne i;
+		fimse
+		escreva(i, "\n");
+		i = i - 1;
+	fimenquanto
+fim
+
+inicio
+	variavel l: inteiro;
+	l = func(15); 
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 69
+ dataSize: 1
+   mainPC: 52
+startStrz: 67
+-----------------------
+0: enter 1 2
+3: load 0
+5: store 1
+7: load 1
+9: const 0
+14: jle 50
+17: load 1
+19: const 10
+24: jne 31
+27: load 1
+29: exit
+30: return
+31: load 1
+33: printi
+34: prints 67
+37: load 1
+39: const 1
+44: sub
+45: store 1
+47: jmp 7
+50: trap 1
+52: enter 0 1
+55: const 15
+60: call 0
+63: store 0
+65: exit
+66: return
+67: \n
+*/

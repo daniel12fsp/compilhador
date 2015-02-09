@@ -1,0 +1,32 @@
+algoritmo if
+inicio
+	variavel a: inteiro;
+	a = 34;
+	se a > 10
+		entao escreva("maior\n");
+		senao escreva("menor\n");
+	fimse
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 45
+ dataSize: 0
+   mainPC: 0
+startStrz: 31
+-----------------------
+0: enter 0 1
+3: const 34
+8: store 0
+10: load 0
+12: const 10
+17: jle 26
+20: prints 31
+23: jmp 29
+26: prints 38
+29: exit
+30: return
+31: maior\n
+38: menor\n
+*/

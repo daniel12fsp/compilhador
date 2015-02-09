@@ -1,0 +1,54 @@
+leaima.txt
+Marco Cristo, 2014
+
+Diretorios
+----------
+
+cocor = fontes do COCO/R para Java     
+vm = fonte da microJVM
+doc = documentao da VM e do compilador uPortugol a ser implementado 
+fontesup = fontes em uPortugol dados para os alunos (alguns fontes
+	com código em assembler do uPortugol ou mensagens de erro esperadas, 
+	para referencia)          
+
+Arquivos
+--------
+
+microc-auls.atg = gramatica da linguagem microC, vista em sala de aula e a ser usada 
+	como base pra implementacao do uPortugol (contendo a parte de tabela de simbolos) 
+Compile.java = front-end do compilador 
+Tab.java = tabela de simbolos
+Code.java = gerador de codigo pra microJVM  
+Operand.java = codigo de suporte aa compilacao de expressoes
+
+Como usar
+---------
+
+[1] Criando VM (no diretorio vm):
+
+javac VMRun.java
+
+[2] Criando compilador uPortugol (no diretorio base):
+
+java -jar cocor/Coco.jar -frames cocor uportugol.atg
+javac *.java
+ 
+[3] Compilando fonte (no diretorio base):
+
+java Compile fontesup/while.up
+
+[4] Rodando fonte (no diretorio base):
+
+java -cp .:vm VMRun fontesup/while.obj
+
+-- note que fontes UP em diretorio fontesup tem exemplos de codigos de maquina
+-- esperados como comentarios no final de cada arquivo
+
+Como trabalhos serao avaliados
+------------------------------
+
+- Compilador dos alunos sera testado em N casos de teste que exploram a linguagem 
+  (especialmente 'para', 'caso', 'leia' e 'escreva') 
+
+- Maior parte dos testes sera baseada em verificar se codigo de maquina gerado produz
+  saida esperada. Contudo, tambem serao verificados (1) plagio, (2) codigo de maquina

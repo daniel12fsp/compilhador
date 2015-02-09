@@ -1,0 +1,139 @@
+/* switch */
+algoritmo testeCase
+
+inicio
+    variavel vdia: inteiro[];
+    vdia = novo inteiro {1, 2, 3, 4, 5, 6, 7};
+
+    variavel dia: inteiro;
+    dia = 5;
+    
+    /* caso (dia) */
+    caso vdia[2] 
+        seja 2 faca   escreva("Segunda!\n"); 
+                      escreva("Dia da semana\n");
+        seja 3 faca   escreva("Terca!\n"); 
+                      escreva("Dia da semana\n");
+        seja 4 faca   escreva("Quarta!\n"); 
+                      escreva("Dia da semana\n");
+        seja 5 faca   escreva("Quinta!\n"); 
+                      escreva("Dia da semana\n");
+        seja 6 faca   escreva("Sexta!\n"); 
+                      escreva("Dia da semana\n");
+        seja 1 faca   escreva("Domingo!\n"); 
+                      escreva("Fim de semana\n");
+        seja 7 faca   escreva("Sabado!\n"); 
+                      escreva("Fim de semana\n");
+        outrocaso:    escreva("Erro\n");
+    fimcaso
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 435
+ dataSize: 0
+   mainPC: 0
+startStrz: 261
+-----------------------
+0: enter 0 4
+3: const 7
+8: newarray 
+9: store 1
+11: load 1
+13: load 1
+15: const 0
+20: const 1
+25: astore
+26: load 1
+28: const 1
+33: const 2
+38: astore
+39: load 1
+41: const 2
+46: const 3
+51: astore
+52: load 1
+54: const 3
+59: const 4
+64: astore
+65: load 1
+67: const 4
+72: const 5
+77: astore
+78: load 1
+80: const 5
+85: const 6
+90: astore
+91: load 1
+93: const 6
+98: const 7
+103: astore
+104: store 0
+106: const 5
+111: store 2
+113: load 0
+115: const 2
+120: aload
+121: store 3
+123: load 3
+125: const 2
+130: jne 142
+133: prints 261
+136: prints 271
+139: jmp 259
+142: load 3
+144: const 3
+149: jne 161
+152: prints 286
+155: prints 294
+158: jmp 259
+161: load 3
+163: const 4
+168: jne 180
+171: prints 309
+174: prints 318
+177: jmp 259
+180: load 3
+182: const 5
+187: jne 199
+190: prints 333
+193: prints 342
+196: jmp 259
+199: load 3
+201: const 6
+206: jne 218
+209: prints 357
+212: prints 365
+215: jmp 259
+218: load 3
+220: const 1
+225: jne 237
+228: prints 380
+231: prints 390
+234: jmp 259
+237: load 3
+239: const 7
+244: jne 256
+247: prints 405
+250: prints 414
+253: jmp 259
+256: prints 429
+259: exit
+260: return
+261: Segunda!\n
+271: Dia da semana\n
+286: Terca!\n
+294: Dia da semana\n
+309: Quarta!\n
+318: Dia da semana\n
+333: Quinta!\n
+342: Dia da semana\n
+357: Sexta!\n
+365: Dia da semana\n
+380: Domingo!\n
+390: Fim de semana\n
+405: Sabado!\n
+414: Fim de semana\n
+429: Erro\n
+*/

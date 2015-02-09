@@ -1,0 +1,98 @@
+/* funcoes */
+
+algoritmo vetorTeste
+
+constante MAX = 3;
+variavel gv: inteiro[];
+
+inicio
+	variavel lv1, lv2: inteiro [];
+	variavel i: inteiro;
+
+	lv1 = novo inteiro {10, 20, 30};
+	lv2 = novo inteiro [ tamanho(lv1) ];
+	gv = novo inteiro [3];
+
+	i = 0;
+	enquanto i < MAX faca
+		gv[i] = i * 5;
+		lv2[i] = gv[i] + lv1[i];
+		escreva("lv2[", i, "] = ", lv2[i], "\n");
+		i = i + 1;
+	fimenquanto
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 162
+ dataSize: 1
+   mainPC: 0
+startStrz: 150
+-----------------------
+0: enter 0 4
+3: const 3
+8: newarray 
+9: store 3
+11: load 3
+13: load 3
+15: const 0
+20: const 10
+25: astore
+26: load 3
+28: const 1
+33: const 20
+38: astore
+39: load 3
+41: const 2
+46: const 30
+51: astore
+52: store 0
+54: load 0
+56: arraylength
+57: newarray 
+58: store 1
+60: const 3
+65: newarray 
+66: putstatic 0
+69: const 0
+74: store 2
+76: load 2
+78: const 3
+83: jge 148
+86: getstatic 0
+89: load 2
+91: load 2
+93: const 5
+98: mul
+99: astore
+100: load 1
+102: load 2
+104: getstatic 0
+107: load 2
+109: aload
+110: load 0
+112: load 2
+114: aload
+115: add
+116: astore
+117: prints 150
+120: load 2
+122: printi
+123: prints 155
+126: load 1
+128: load 2
+130: aload
+131: printi
+132: prints 160
+135: load 2
+137: const 1
+142: add
+143: store 2
+145: jmp 76
+148: exit
+149: return
+150: lv2[
+155: ] = 
+160: \n
+*/

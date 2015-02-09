@@ -1,0 +1,64 @@
+/* globais e locais */
+
+algoritmo locaisEglobais
+
+variavel g1, g2, g3: inteiro;
+
+inicio
+	variavel l1: inteiro;
+
+	g1 = 1;
+	g2 = 2;
+	g3 = 3;
+	l1 = 4;
+
+	escreva("g1 = ", g1, "\n");
+	escreva("g2 = ", g2, "\n");
+	escreva("g3 = ", g3, "\n");
+	escreva("l1 = ", l1, "\n");
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 107
+ dataSize: 3
+   mainPC: 0
+startStrz: 75
+-----------------------
+0: enter 0 1
+3: const 1
+8: putstatic 0
+11: const 2
+16: putstatic 1
+19: const 3
+24: putstatic 2
+27: const 4
+32: store 0
+34: prints 75
+37: getstatic 0
+40: printi
+41: prints 81
+44: prints 83
+47: getstatic 1
+50: printi
+51: prints 89
+54: prints 91
+57: getstatic 2
+60: printi
+61: prints 97
+64: prints 99
+67: load 0
+69: printi
+70: prints 105
+73: exit
+74: return
+75: g1 = 
+81: \n
+83: g2 = 
+89: \n
+91: g3 = 
+97: \n
+99: l1 = 
+105: \n
+*/

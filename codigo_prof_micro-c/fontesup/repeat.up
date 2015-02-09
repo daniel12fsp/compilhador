@@ -1,0 +1,35 @@
+algoritmo repeat
+inicio
+	variavel i: inteiro;
+	i = 0;
+	repita  
+		escreva(i, "\n");
+		i = i + 1;
+	ate i == 10;
+fim
+
+/*
+-----------------------
+ marcador: UP
+ codeSize: 40
+ dataSize: 0
+   mainPC: 0
+startStrz: 38
+-----------------------
+0: enter 0 1
+3: const 0
+8: store 0
+10: load 0
+12: printi
+13: prints 38
+16: load 0
+18: const 1
+23: add
+24: store 0
+26: load 0
+28: const 10
+33: jne 10
+36: exit
+37: return
+38: \n
+*/

@@ -1,0 +1,1141 @@
+/*
+	comparacao de metodos de ordenacao, Marco, 2014
+*/
+
+algoritmo ComparacaoDeAlgoritmosOrdenacao
+
+constante TAM = 10;
+
+procedimento imprime(v: inteiro[])
+inicio
+    variavel i: inteiro;
+    para i = 0 ate tamanho(v) - 1 faca
+        escreva(v[i], " ");
+    fimpara;
+fim
+
+procedimento copia(v1: inteiro[], v2: inteiro[])
+inicio
+    variavel i: inteiro;
+    para i = 0 ate (tamanho(v1) - 1) faca
+        v1[i] = v2[i];
+    fimpara;
+fim
+
+procedimento troque(v: inteiro[], i: inteiro, j: inteiro)
+inicio
+    variavel tmp: inteiro;
+    tmp = v[i];
+    v[i] = v[j];
+    v[j] = tmp;
+fim
+
+/***** bolha *******/
+procedimento bolha(v: inteiro[]): inteiro
+inicio
+    variavel custo, i, troca: inteiro;
+    custo = 0;
+    troca = 1;
+    enquanto troca == 1 faca
+        troca = 0;
+        para i = 0 ate tamanho(v) - 2 faca
+            custo = custo + 1;
+            se v[i] > v[i+1] entao
+                troque(v, i, i+1);
+                troca = 1;
+            fimse;
+        fimpara;
+    fimenquanto;
+    retorne custo;
+fim
+
+/***** selecao *******/
+procedimento minpos(v: inteiro[], i: inteiro, f: inteiro): inteiro
+inicio
+    variavel j, min, minj: inteiro;
+    min = v[i];
+    minj = i;
+    para j = i + 1 ate f - 1 faca
+        se v[j] < min entao
+            min = v[j];
+            minj = j;
+        fimse;
+    fimpara;
+    retorne minj;
+fim
+
+procedimento selecao(v: inteiro[]): inteiro
+inicio
+    variavel i, minp, custo: inteiro;
+    custo = 0;
+    para i = 0 ate tamanho(v) - 2 faca
+        custo = custo + tamanho(v) - i - 1;
+        minp = minpos(v, i + 1, tamanho(v));
+	    se v[i] > v[minp] entao
+        	troque(v, i, minp);
+        fimse;
+    fimpara;
+    retorne custo;
+fim
+
+/***** insercao *******/
+procedimento jMaior0EauxMenorVjmenos1(j: inteiro, aux: inteiro, v: inteiro[]): inteiro
+inicio
+    se j > 0 entao se aux < v[j - 1] entao retorne 1; fimse; fimse;
+    retorne 0;
+fim
+
+procedimento insercao(v: inteiro[]): inteiro
+inicio
+    variavel i, j, custo, aux: inteiro;
+    custo = 0;
+    para i = 1 ate tamanho(v) - 1 faca
+        aux = v[i];
+        j = i;
+        enquanto jMaior0EauxMenorVjmenos1(j, aux, v) == 1 faca
+            custo = custo + 1;
+            v[j] = v[j - 1];
+            j = j - 1;
+        fimenquanto;
+        v[j] = aux;
+    fimpara;
+    retorne custo;
+fim
+
+/**** mergesort ****/
+procedimento esqMEfimEsqEmeioMEdir(esq: inteiro, fimEsq: inteiro, 
+                                   meio: inteiro, dir: inteiro) : inteiro
+inicio
+    se esq <= fimEsq entao se meio <= dir entao retorne 1; fimse; fimse;
+    retorne 0;
+fim
+
+procedimento merge(v: inteiro[], tmp: inteiro[], esq: inteiro, 
+                   meio: inteiro, dir: inteiro): inteiro
+inicio
+    variavel i, fimEsq, tam, k, custo: inteiro;
+
+    custo = 0;
+    fimEsq = meio - 1;
+    k = esq;
+    tam = dir - esq + 1;
+
+    enquanto esqMEfimEsqEmeioMEdir(esq, fimEsq, meio, dir) == 1 faca
+        custo = custo + 1;
+        se v[esq] <= v[meio] entao
+            tmp[k] = v[esq];
+            esq = esq + 1;
+        senao 
+            tmp[k] = v[meio];
+            meio = meio + 1;
+        fimse;
+        k = k + 1;
+    fimenquanto;
+
+    enquanto esq <= fimEsq faca
+        tmp[k] = v[esq];
+        esq = esq + 1;
+        k = k + 1;
+		custo = custo + 1;
+    fimenquanto;
+
+    enquanto meio <= dir faca
+        tmp[k] = v[meio];
+        meio = meio + 1;
+        k = k + 1;
+		custo = custo + 1;
+    fimenquanto;
+
+    para i = 0 ate tam - 1 faca
+        v[dir] = tmp[dir];
+        dir = dir - 1;
+    fimpara;
+    retorne custo + 3;
+fim
+
+procedimento msort(v: inteiro[], tmp: inteiro[], esq: inteiro, dir: inteiro): inteiro
+inicio
+    variavel meio, custo: inteiro;
+    custo = 0;
+    se dir > esq entao
+        meio = (dir + esq) / 2;
+        msort(v, tmp, esq, meio);
+        msort(v, tmp, meio + 1, dir);
+        custo = custo + merge(v, tmp, esq, meio + 1, dir);
+    fimse;
+    retorne custo;
+fim
+
+procedimento mergesort(v: inteiro[]): inteiro
+inicio
+    variavel tmp: inteiro[];
+    tmp = novo inteiro [tamanho(v)];
+    retorne msort(v, tmp, 0, tamanho(v) - 1);
+fim
+
+/**** quicksort ****/
+variavel custoq: inteiro;
+
+procedimento iMenorFimEviMenorPivo(i: inteiro, vfim: inteiro, v: inteiro[], pivo: inteiro): inteiro
+inicio
+    se i < vfim entao se v[i] < pivo entao retorne 1; fimse; fimse;
+    retorne 0;
+fim
+
+/* particione */
+procedimento particione(v: inteiro[], ini: inteiro, vfim: inteiro): inteiro
+inicio
+    variavel i, j, pivo: inteiro;
+    i = ini + 1;
+    j = vfim;
+    pivo = v[ini];
+    enquanto i <= j faca
+        enquanto iMenorFimEviMenorPivo(i, vfim, v, pivo) == 1 faca
+            i = i + 1;
+            custoq = custoq + 1;
+        fimenquanto
+        enquanto v[j] > pivo faca
+            j = j - 1;
+            custoq = custoq + 1;
+        fimenquanto
+        custoq = custoq + 2;
+        se i < j entao
+            troque(v, i, j);
+            i = i + 1;
+            j = j - 1;
+        senao
+            i = i + 1;
+        fimse;
+    fimenquanto;
+    troque(v, j, ini);
+    retorne j;
+fim
+
+/* quicksort */
+procedimento quicksort(v: inteiro[], ini: inteiro, vfim: inteiro)
+inicio
+    se (vfim - ini) < 1 entao
+        retorne;
+    fimse
+    variavel p: inteiro;
+    p = particione(v, ini, vfim);
+    se ini < (p - 1) entao
+        quicksort(v, ini, p - 1);
+    fimse
+    se vfim > (p + 1) entao
+        quicksort(v, p + 1, vfim);
+    fimse 	
+fim
+
+inicio
+    variavel custo, i: inteiro; 
+    variavel v, v2: inteiro[];
+
+    v = novo inteiro { 61, 57, 72, 18, 8, 30, 21, 93, 67, 15, 78, 12, 81, 32, 27, 92 };
+    v2 = novo inteiro [tamanho(v)];
+
+    escreva(" ORIGINAL = "); imprime(v); escreva("\n");
+
+    copia(v2, v);
+    custo = bolha(v2);
+    escreva("    BOLHA = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custo = selecao(v2);
+    escreva("  SELECAO = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custo = insercao(v2);
+    escreva(" INSERCAO = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custo = mergesort(v2);
+    escreva("MERGESORT = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custoq = 0;
+    quicksort(v2, 0, tamanho(v2) - 1);
+    escreva("QUICKSORT = "); imprime(v2); escreva("apos ", custoq, " comparacoes\n");
+fim
+
+$d
+
+/*
+=================================================
+Algoritmo ComparacaoDeAlgoritmosOrdenacao
+-------------------------------------------------
+Var custo @0 n=1 (Int)
+Var i @1 n=1 (Int)
+Var v @2 n=1 (Vetor[] = (Int))
+Var v2 @3 n=1 (Vetor[] = (Int))
+Var _end_4 @4 n=1 (Int)
+-------------------------------------------------
+Global
+-------------------------------------------------
+Const TAM = 10 (Int)
+Funcao "imprime" @0 #1 -> (Nada)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var i @1 n=1 (Int)
+Funcao "copia" @48 #2 -> (Nada)
+  Var v1 @0 n=1 (Vetor[] = (Int))
+  Var v2 @1 n=1 (Vetor[] = (Int))
+  Var i @2 n=1 (Int)
+Funcao "troque" @97 #3 -> (Nada)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var i @1 n=1 (Int)
+  Var j @2 n=1 (Int)
+  Var tmp @3 n=1 (Int)
+Funcao "bolha" @126 #1 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var custo @1 n=1 (Int)
+  Var i @2 n=1 (Int)
+  Var troca @3 n=1 (Int)
+Funcao "minpos" @254 #3 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var i @1 n=1 (Int)
+  Var f @2 n=1 (Int)
+  Var j @3 n=1 (Int)
+  Var min @4 n=1 (Int)
+  Var minj @5 n=1 (Int)
+Funcao "selecao" @331 #1 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var i @1 n=1 (Int)
+  Var minp @2 n=1 (Int)
+  Var custo @3 n=1 (Int)
+Funcao "jMaior0EauxMenorVjmenos1" @438 #3 -> (Int)
+  Var j @0 n=1 (Int)
+  Var aux @1 n=1 (Int)
+  Var v @2 n=1 (Vetor[] = (Int))
+Funcao "insercao" @483 #1 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var i @1 n=1 (Int)
+  Var j @2 n=1 (Int)
+  Var custo @3 n=1 (Int)
+  Var aux @4 n=1 (Int)
+Funcao "esqMEfimEsqEmeioMEdir" @607 #4 -> (Int)
+  Var esq @0 n=1 (Int)
+  Var fimEsq @1 n=1 (Int)
+  Var meio @2 n=1 (Int)
+  Var dir @3 n=1 (Int)
+Funcao "merge" @640 #5 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var tmp @1 n=1 (Vetor[] = (Int))
+  Var esq @2 n=1 (Int)
+  Var meio @3 n=1 (Int)
+  Var dir @4 n=1 (Int)
+  Var i @5 n=1 (Int)
+  Var fimEsq @6 n=1 (Int)
+  Var tam @7 n=1 (Int)
+  Var k @8 n=1 (Int)
+  Var custo @9 n=1 (Int)
+Funcao "msort" @940 #4 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var tmp @1 n=1 (Vetor[] = (Int))
+  Var esq @2 n=1 (Int)
+  Var dir @3 n=1 (Int)
+  Var meio @4 n=1 (Int)
+  Var custo @5 n=1 (Int)
+Funcao "mergesort" @1030 #1 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var tmp @1 n=1 (Vetor[] = (Int))
+Var custoq @0 n=0 (Int)
+Funcao "iMenorFimEviMenorPivo" @1064 #4 -> (Int)
+  Var i @0 n=1 (Int)
+  Var vfim @1 n=1 (Int)
+  Var v @2 n=1 (Vetor[] = (Int))
+  Var pivo @3 n=1 (Int)
+Funcao "particione" @1100 #3 -> (Int)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var ini @1 n=1 (Int)
+  Var vfim @2 n=1 (Int)
+  Var i @3 n=1 (Int)
+  Var j @4 n=1 (Int)
+  Var pivo @5 n=1 (Int)
+Funcao "quicksort" @1289 #3 -> (Nada)
+  Var v @0 n=1 (Vetor[] = (Int))
+  Var ini @1 n=1 (Int)
+  Var vfim @2 n=1 (Int)
+  Var p @3 n=1 (Int)
+Funcao "ComparacaoDeAlgoritmosOrdenacao" @0 #0 -> (Nada)
+-------------------------------------------------
+Universo
+-------------------------------------------------
+Tipo inteiro (Int)
+Tipo void (Nada)
+Funcao "tamanho" @0 #1 -> (Int)
+  Var vLEN @0 n=0 (Vetor[] = (Nada))
+-------------------------------------------------
+=================================================
+-----------------------
+ marcador: UP
+ codeSize: 1976
+ dataSize: 1
+   mainPC: 1376
+startStrz: 1794
+-----------------------
+0: enter 1 2
+3: const 0
+8: store 1
+10: load 1
+12: load 0
+14: arraylength
+15: const 1
+20: sub
+21: jgt 46
+24: load 0
+26: load 1
+28: aload
+29: printi
+30: prints 1794
+33: load 1
+35: const 1
+40: add
+41: store 1
+43: jmp 10
+46: exit
+47: return
+48: enter 2 3
+51: const 0
+56: store 2
+58: load 2
+60: load 0
+62: arraylength
+63: const 1
+68: sub
+69: jgt 95
+72: load 0
+74: load 2
+76: load 1
+78: load 2
+80: aload
+81: astore
+82: load 2
+84: const 1
+89: add
+90: store 2
+92: jmp 58
+95: exit
+96: return
+97: enter 3 4
+100: load 0
+102: load 1
+104: aload
+105: store 3
+107: load 0
+109: load 1
+111: load 0
+113: load 2
+115: aload
+116: astore
+117: load 0
+119: load 2
+121: load 3
+123: astore
+124: exit
+125: return
+126: enter 1 4
+129: const 0
+134: store 1
+136: const 1
+141: store 3
+143: load 3
+145: const 1
+150: jne 248
+153: const 0
+158: store 3
+160: const 0
+165: store 2
+167: load 2
+169: load 0
+171: arraylength
+172: const 2
+177: sub
+178: jgt 245
+181: load 1
+183: const 1
+188: add
+189: store 1
+191: load 0
+193: load 2
+195: aload
+196: load 0
+198: load 2
+200: const 1
+205: add
+206: aload
+207: jle 232
+210: load 0
+212: load 2
+214: load 2
+216: const 1
+221: add
+222: call 97
+225: const 1
+230: store 3
+232: load 2
+234: const 1
+239: add
+240: store 2
+242: jmp 167
+245: jmp 143
+248: load 1
+250: exit
+251: return
+252: trap 1
+254: enter 3 6
+257: load 0
+259: load 1
+261: aload
+262: store 4
+264: load 1
+266: store 5
+268: load 1
+270: const 1
+275: add
+276: store 3
+278: load 3
+280: load 2
+282: const 1
+287: sub
+288: jgt 325
+291: load 0
+293: load 3
+295: aload
+296: load 4
+298: jge 312
+301: load 0
+303: load 3
+305: aload
+306: store 4
+308: load 3
+310: store 5
+312: load 3
+314: const 1
+319: add
+320: store 3
+322: jmp 278
+325: load 5
+327: exit
+328: return
+329: trap 1
+331: enter 1 4
+334: const 0
+339: store 3
+341: const 0
+346: store 1
+348: load 1
+350: load 0
+352: arraylength
+353: const 2
+358: sub
+359: jgt 432
+362: load 3
+364: load 0
+366: arraylength
+367: add
+368: load 1
+370: sub
+371: const 1
+376: sub
+377: store 3
+379: load 0
+381: load 1
+383: const 1
+388: add
+389: load 0
+391: arraylength
+392: call 254
+395: store 2
+397: load 0
+399: load 1
+401: aload
+402: load 0
+404: load 2
+406: aload
+407: jle 419
+410: load 0
+412: load 1
+414: load 2
+416: call 97
+419: load 1
+421: const 1
+426: add
+427: store 1
+429: jmp 348
+432: load 3
+434: exit
+435: return
+436: trap 1
+438: enter 3 3
+441: load 0
+443: const 0
+448: jle 474
+451: load 1
+453: load 2
+455: load 0
+457: const 1
+462: sub
+463: aload
+464: jge 474
+467: const 1
+472: exit
+473: return
+474: const 0
+479: exit
+480: return
+481: trap 1
+483: enter 1 5
+486: const 0
+491: store 3
+493: const 1
+498: store 1
+500: load 1
+502: load 0
+504: arraylength
+505: const 1
+510: sub
+511: jgt 601
+514: load 0
+516: load 1
+518: aload
+519: store 4
+521: load 1
+523: store 2
+525: load 2
+527: load 4
+529: load 0
+531: call 438
+534: const 1
+539: jne 581
+542: load 3
+544: const 1
+549: add
+550: store 3
+552: load 0
+554: load 2
+556: load 0
+558: load 2
+560: const 1
+565: sub
+566: aload
+567: astore
+568: load 2
+570: const 1
+575: sub
+576: store 2
+578: jmp 525
+581: load 0
+583: load 2
+585: load 4
+587: astore
+588: load 1
+590: const 1
+595: add
+596: store 1
+598: jmp 500
+601: load 3
+603: exit
+604: return
+605: trap 1
+607: enter 4 4
+610: load 0
+612: load 1
+614: jgt 631
+617: load 2
+619: load 3
+621: jgt 631
+624: const 1
+629: exit
+630: return
+631: const 0
+636: exit
+637: return
+638: trap 1
+640: enter 5 10
+643: const 0
+648: store 9
+650: load 3
+652: const 1
+657: sub
+658: store 6
+660: load 2
+662: store 8
+664: load 4
+666: load 2
+668: sub
+669: const 1
+674: add
+675: store 7
+677: load 2
+679: load 6
+681: load 3
+683: load 4
+685: call 607
+688: const 1
+693: jne 775
+696: load 9
+698: const 1
+703: add
+704: store 9
+706: load 0
+708: load 2
+710: aload
+711: load 0
+713: load 3
+715: aload
+716: jgt 742
+719: load 1
+721: load 8
+723: load 0
+725: load 2
+727: aload
+728: astore
+729: load 2
+731: const 1
+736: add
+737: store 2
+739: jmp 762
+742: load 1
+744: load 8
+746: load 0
+748: load 3
+750: aload
+751: astore
+752: load 3
+754: const 1
+759: add
+760: store 3
+762: load 8
+764: const 1
+769: add
+770: store 8
+772: jmp 677
+775: load 2
+777: load 6
+779: jgt 825
+782: load 1
+784: load 8
+786: load 0
+788: load 2
+790: aload
+791: astore
+792: load 2
+794: const 1
+799: add
+800: store 2
+802: load 8
+804: const 1
+809: add
+810: store 8
+812: load 9
+814: const 1
+819: add
+820: store 9
+822: jmp 775
+825: load 3
+827: load 4
+829: jgt 875
+832: load 1
+834: load 8
+836: load 0
+838: load 3
+840: aload
+841: astore
+842: load 3
+844: const 1
+849: add
+850: store 3
+852: load 8
+854: const 1
+859: add
+860: store 8
+862: load 9
+864: const 1
+869: add
+870: store 9
+872: jmp 825
+875: const 0
+880: store 5
+882: load 5
+884: load 7
+886: const 1
+891: sub
+892: jgt 928
+895: load 0
+897: load 4
+899: load 1
+901: load 4
+903: aload
+904: astore
+905: load 4
+907: const 1
+912: sub
+913: store 4
+915: load 5
+917: const 1
+922: add
+923: store 5
+925: jmp 882
+928: load 9
+930: const 3
+935: add
+936: exit
+937: return
+938: trap 1
+940: enter 4 6
+943: const 0
+948: store 5
+950: load 3
+952: load 2
+954: jle 1024
+957: load 3
+959: load 2
+961: add
+962: const 2
+967: div
+968: store 4
+970: load 0
+972: load 1
+974: load 2
+976: load 4
+978: call 940
+981: pop
+982: load 0
+984: load 1
+986: load 4
+988: const 1
+993: add
+994: load 3
+996: call 940
+999: pop
+1000: load 5
+1002: load 0
+1004: load 1
+1006: load 2
+1008: load 4
+1010: const 1
+1015: add
+1016: load 3
+1018: call 640
+1021: add
+1022: store 5
+1024: load 5
+1026: exit
+1027: return
+1028: trap 1
+1030: enter 1 2
+1033: load 0
+1035: arraylength
+1036: newarray 
+1037: store 1
+1039: load 0
+1041: load 1
+1043: const 0
+1048: load 0
+1050: arraylength
+1051: const 1
+1056: sub
+1057: call 940
+1060: exit
+1061: return
+1062: trap 1
+1064: enter 4 4
+1067: load 0
+1069: load 1
+1071: jge 1091
+1074: load 2
+1076: load 0
+1078: aload
+1079: load 3
+1081: jge 1091
+1084: const 1
+1089: exit
+1090: return
+1091: const 0
+1096: exit
+1097: return
+1098: trap 1
+1100: enter 3 6
+1103: load 1
+1105: const 1
+1110: add
+1111: store 3
+1113: load 2
+1115: store 4
+1117: load 0
+1119: load 1
+1121: aload
+1122: store 5
+1124: load 3
+1126: load 4
+1128: jgt 1274
+1131: load 3
+1133: load 2
+1135: load 0
+1137: load 5
+1139: call 1064
+1142: const 1
+1147: jne 1175
+1150: load 3
+1152: const 1
+1157: add
+1158: store 3
+1160: getstatic 0
+1163: const 1
+1168: add
+1169: putstatic 0
+1172: jmp 1131
+1175: load 0
+1177: load 4
+1179: aload
+1180: load 5
+1182: jle 1210
+1185: load 4
+1187: const 1
+1192: sub
+1193: store 4
+1195: getstatic 0
+1198: const 1
+1203: add
+1204: putstatic 0
+1207: jmp 1175
+1210: getstatic 0
+1213: const 2
+1218: add
+1219: putstatic 0
+1222: load 3
+1224: load 4
+1226: jge 1261
+1229: load 0
+1231: load 3
+1233: load 4
+1235: call 97
+1238: load 3
+1240: const 1
+1245: add
+1246: store 3
+1248: load 4
+1250: const 1
+1255: sub
+1256: store 4
+1258: jmp 1271
+1261: load 3
+1263: const 1
+1268: add
+1269: store 3
+1271: jmp 1124
+1274: load 0
+1276: load 4
+1278: load 1
+1280: call 97
+1283: load 4
+1285: exit
+1286: return
+1287: trap 1
+1289: enter 3 4
+1292: load 2
+1294: load 1
+1296: sub
+1297: const 1
+1302: jge 1307
+1305: exit
+1306: return
+1307: load 0
+1309: load 1
+1311: load 2
+1313: call 1100
+1316: store 3
+1318: load 1
+1320: load 3
+1322: const 1
+1327: sub
+1328: jge 1346
+1331: load 0
+1333: load 1
+1335: load 3
+1337: const 1
+1342: sub
+1343: call 1289
+1346: load 2
+1348: load 3
+1350: const 1
+1355: add
+1356: jle 1374
+1359: load 0
+1361: load 3
+1363: const 1
+1368: add
+1369: load 2
+1371: call 1289
+1374: exit
+1375: return
+1376: enter 0 5
+1379: const 16
+1384: newarray 
+1385: store 4
+1387: load 4
+1389: load 4
+1391: const 0
+1396: const 61
+1401: astore
+1402: load 4
+1404: const 1
+1409: const 57
+1414: astore
+1415: load 4
+1417: const 2
+1422: const 72
+1427: astore
+1428: load 4
+1430: const 3
+1435: const 18
+1440: astore
+1441: load 4
+1443: const 4
+1448: const 8
+1453: astore
+1454: load 4
+1456: const 5
+1461: const 30
+1466: astore
+1467: load 4
+1469: const 6
+1474: const 21
+1479: astore
+1480: load 4
+1482: const 7
+1487: const 93
+1492: astore
+1493: load 4
+1495: const 8
+1500: const 67
+1505: astore
+1506: load 4
+1508: const 9
+1513: const 15
+1518: astore
+1519: load 4
+1521: const 10
+1526: const 78
+1531: astore
+1532: load 4
+1534: const 11
+1539: const 12
+1544: astore
+1545: load 4
+1547: const 12
+1552: const 81
+1557: astore
+1558: load 4
+1560: const 13
+1565: const 32
+1570: astore
+1571: load 4
+1573: const 14
+1578: const 27
+1583: astore
+1584: load 4
+1586: const 15
+1591: const 92
+1596: astore
+1597: store 2
+1599: load 2
+1601: arraylength
+1602: newarray 
+1603: store 3
+1605: prints 1796
+1608: load 2
+1610: call 0
+1613: prints 1809
+1616: load 3
+1618: load 2
+1620: call 48
+1623: load 3
+1625: call 126
+1628: store 0
+1630: prints 1811
+1633: load 3
+1635: call 0
+1638: prints 1824
+1641: load 0
+1643: printi
+1644: prints 1830
+1647: load 3
+1649: load 2
+1651: call 48
+1654: load 3
+1656: call 331
+1659: store 0
+1661: prints 1844
+1664: load 3
+1666: call 0
+1669: prints 1857
+1672: load 0
+1674: printi
+1675: prints 1863
+1678: load 3
+1680: load 2
+1682: call 48
+1685: load 3
+1687: call 483
+1690: store 0
+1692: prints 1877
+1695: load 3
+1697: call 0
+1700: prints 1890
+1703: load 0
+1705: printi
+1706: prints 1896
+1709: load 3
+1711: load 2
+1713: call 48
+1716: load 3
+1718: call 1030
+1721: store 0
+1723: prints 1910
+1726: load 3
+1728: call 0
+1731: prints 1923
+1734: load 0
+1736: printi
+1737: prints 1929
+1740: load 3
+1742: load 2
+1744: call 48
+1747: const 0
+1752: putstatic 0
+1755: load 3
+1757: const 0
+1762: load 3
+1764: arraylength
+1765: const 1
+1770: sub
+1771: call 1289
+1774: prints 1943
+1777: load 3
+1779: call 0
+1782: prints 1956
+1785: getstatic 0
+1788: printi
+1789: prints 1962
+1792: exit
+1793: return
+1794:  
+1796:  ORIGINAL = 
+1809: \n
+1811:     BOLHA = 
+1824: apos 
+1830:  comparacoes\n
+1844:   SELECAO = 
+1857: apos 
+1863:  comparacoes\n
+1877:  INSERCAO = 
+1890: apos 
+1896:  comparacoes\n
+1910: MERGESORT = 
+1923: apos 
+1929:  comparacoes\n
+1943: QUICKSORT = 
+1956: apos 
+1962:  comparacoes\n
+*/
