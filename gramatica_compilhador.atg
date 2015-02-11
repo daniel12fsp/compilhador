@@ -1,10 +1,23 @@
 /*
-        PacocaTeam
-	Alunos : 
-                Daniel(21201910)
-                Denys(21200320)
+	Alunos : Daniel(21201910) e Denys(?????????)
 */
 COMPILER MicroPortugol
+
+	private Tab ts;
+	private Obj ofuncAtual;
+
+	private Code objCode;
+
+	private Struct getTipo(String tipo, boolean vec) { 
+		Obj o = ts.buscar(tipo);
+		Struct st = o.tipo;
+		if (vec) st = new Struct(Struct.Vetor, o.tipo);
+		return st;	
+	}
+
+	public void erro(String msg) {
+		errors.SemErr(t.line, t.col, msg);
+	}
 
 CHARACTERS
 	semAspas 	= ANY - '"'.
@@ -25,35 +38,52 @@ IGNORE '\r' + '\n' + '\t'
 
 PRODUCTIONS
 
-MicroPortugol = "Algoritmo" Linhas. 
+MicroPortugol = "algoritmo" id Linhas. 
 Linhas =  Comando { Comando }.
-Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Chamada_funcao |
-			Assinalamento_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def.
+Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def | Designador. 
+
 Bloco_def = "inicio"  Linhas "fim" .
-Procedimento_def = "procedimento" id  "(" [id ":" Tipo { "," id ":" Tipo }] ")" [":" Tipo] "inicio" Linhas ["retorne" Exp] "fim".
-Variavel_def = "variavel" id {"," id} ":" Tipo.
-Tipo = id [ "[" "]"].
+Procedimento_def = "procedimento" id  "(" [id Tipo { "," id Tipo }] ")" [Tipo] "inicio" Linhas ["retorne" Exp ";"] "fim".
+Variavel_def = "variavel" id {"," id} Tipo ";".
+//"inteiro " = id linha abaixo
+Tipo = ":" "inteiro".
 /* Inicio - EBNF Repeticao */
 Repeticao_def = Para_def | Enquanto_def | Repita_def.
-Para_def = "para" Assinalamento_def "ate" Exp "faca" Linhas "fimpara".
+Para_def = "para" id "=" Exp "ate" Exp "faca" Linhas "fimpara".
 Enquanto_def = "enquanto" Condicao_def "faca" Linhas "fimenquanto".
 Repita_def = "repita" Linhas  "ate" Condicao_def ";" .
 /* Fim    - EBNF Repeticao */
-Chamada_funcao = id "(" Exp { "," Exp} ")".
-Assinalamento_def = id "=" (Exp | Novo_def) .
-Novo_def = "novo" "inteiro" ( "[" Exp "]" | {Exp { "," Exp }}).
+
+/* Inicio - Funcao com nome personalizado ou assinalamento */ 
+/* Fim - Funcao com nome personalizado ou assinalamento */ 
+
+Novo_def = "novo" "inteiro" ( "[" Exp "]" | "{" Exp { "," Exp } "}" ).
 Se_def = "se" Condicao_def "entao" Linhas ["senao" Linhas] "fimse".
-Caso_def = "caso" Variavel_def Caso_seja_def { Caso_seja_def} "outrocaso" Linhas "fimcaso".
+Caso_def = "caso" Valor Caso_seja_def { Caso_seja_def} "outrocaso" Linhas "fimcaso".
 Caso_seja_def = "seja" num "faca" Linhas.
-Escreva_def = "escreva" "(" strConst {"," strConst} ")" ";".
+Escreva_def = "escreva" "(" strConst {"," strConst } ")" ";".
 Leia_def = "leia" "(" strConst {"," strConst} ")" ";".
+
 /*Duvida, o valor da constante eh estatica logo so pode ser numeros o valor recebido*/
-Constante_def = "constante" id "=" id . 
+Constante_def = "constante" id "=" Valor ";". 
 Condicao_def = Exp Op_relacional Exp.
 Op_relacional = "==" | "!=" | ">" | ">=" | "<".
-Fator = Variavel[ ("*"|"/") Variavel].
-Termo = Fator [ ( "+" |  "-" ) Fator ].
+
+/* Inicio - Regra de producao para expressoes aritmeticas*/
+Valor = num | Designador.
+Fator = Valor ([ ("*"|"/") Valor]).
+Termo = Fator ([ ( "+" |  "-" ) Fator ]).
 Exp = Termo { Termo }.
-Variavel = num | id ["[" "]"] | Chamada_funcao.
+Designador = id [ X ].
+X = Vetor_def |Chamada_parametros | Assinalamento_def.
+Vetor_def = "[" [Exp] "]".
+Chamada_parametros = "(" Exp { "," Exp} ")" ";".
+Assinalamento_def = "="  (Exp | Novo_def) ";".
+/* Fim    - Regra de producao para expressoes aritmeticas*/
 
 END MicroPortugol.
+
+
+
+
+

@@ -1,0 +1,267 @@
+/*
+	comparacao de metodos de ordenacao, Marco, 2014
+*/
+
+algoritmo ComparacaoDeAlgoritmosOrdenacao
+
+constante TAM = 10;
+
+procedimento imprime(v: inteiro)
+inicio
+    variavel i : inteiro;
+    para i = 0 ate -1 faca
+        v1[i] = v2[i];
+    fimpara
+fim
+
+/*
+procedimento imprime(v: inteiro)
+inicio
+    variavel i : inteiro;
+    para i = 0 ate -1 faca
+    fim
+fim
+procedimento copia(v1: inteiro[], v2: inteiro[])
+inicio
+    variavel i: inteiro;
+    para i = 0 ate (tamanho(v1) - 1) faca
+        v1[i] = v2[i];
+    fimpara;
+fim
+
+procedimento troque(v: inteiro[], i: inteiro, j: inteiro)
+inicio
+    variavel tmp: inteiro;
+    tmp = v[i];
+    v[i] = v[j];
+    v[j] = tmp;
+fim
+
+/***** bolha *******/
+procedimento bolha(v: inteiro[]): inteiro
+inicio
+    variavel custo, i, troca: inteiro;
+    custo = 0;
+    troca = 1;
+    enquanto troca == 1 faca
+        troca = 0;
+        para i = 0 ate tamanho(v) - 2 faca
+            custo = custo + 1;
+            se v[i] > v[i+1] entao
+                troque(v, i, i+1);
+                troca = 1;
+            fimse;
+        fimpara;
+    fimenquanto;
+    retorne custo;
+fim
+
+/***** selecao *******/
+procedimento minpos(v: inteiro[], i: inteiro, f: inteiro): inteiro
+inicio
+    variavel j, min, minj: inteiro;
+    min = v[i];
+    minj = i;
+    para j = i + 1 ate f - 1 faca
+        se v[j] < min entao
+            min = v[j];
+            minj = j;
+        fimse;
+    fimpara;
+    retorne minj;
+fim
+
+procedimento selecao(v: inteiro[]): inteiro
+inicio
+    variavel i, minp, custo: inteiro;
+    custo = 0;
+    para i = 0 ate tamanho(v) - 2 faca
+        custo = custo + tamanho(v) - i - 1;
+        minp = minpos(v, i + 1, tamanho(v));
+	    se v[i] > v[minp] entao
+        	troque(v, i, minp);
+        fimse;
+    fimpara;
+    retorne custo;
+fim
+
+/***** insercao *******/
+procedimento jMaior0EauxMenorVjmenos1(j: inteiro, aux: inteiro, v: inteiro[]): inteiro
+inicio
+    se j > 0 entao se aux < v[j - 1] entao retorne 1; fimse; fimse;
+    retorne 0;
+fim
+
+procedimento insercao(v: inteiro[]): inteiro
+inicio
+    variavel i, j, custo, aux: inteiro;
+    custo = 0;
+    para i = 1 ate tamanho(v) - 1 faca
+        aux = v[i];
+        j = i;
+        enquanto jMaior0EauxMenorVjmenos1(j, aux, v) == 1 faca
+            custo = custo + 1;
+            v[j] = v[j - 1];
+            j = j - 1;
+        fimenquanto;
+        v[j] = aux;
+    fimpara;
+    retorne custo;
+fim
+
+/**** mergesort ****/
+procedimento esqMEfimEsqEmeioMEdir(esq: inteiro, fimEsq: inteiro, 
+                                   meio: inteiro, dir: inteiro) : inteiro
+inicio
+    se esq <= fimEsq entao se meio <= dir entao retorne 1; fimse; fimse;
+    retorne 0;
+fim
+
+procedimento merge(v: inteiro[], tmp: inteiro[], esq: inteiro, 
+                   meio: inteiro, dir: inteiro): inteiro
+inicio
+    variavel i, fimEsq, tam, k, custo: inteiro;
+
+    custo = 0;
+    fimEsq = meio - 1;
+    k = esq;
+    tam = dir - esq + 1;
+
+    enquanto esqMEfimEsqEmeioMEdir(esq, fimEsq, meio, dir) == 1 faca
+        custo = custo + 1;
+        se v[esq] <= v[meio] entao
+            tmp[k] = v[esq];
+            esq = esq + 1;
+        senao 
+            tmp[k] = v[meio];
+            meio = meio + 1;
+        fimse;
+        k = k + 1;
+    fimenquanto;
+
+    enquanto esq <= fimEsq faca
+        tmp[k] = v[esq];
+        esq = esq + 1;
+        k = k + 1;
+		custo = custo + 1;
+    fimenquanto;
+
+    enquanto meio <= dir faca
+        tmp[k] = v[meio];
+        meio = meio + 1;
+        k = k + 1;
+		custo = custo + 1;
+    fimenquanto;
+
+    para i = 0 ate tam - 1 faca
+        v[dir] = tmp[dir];
+        dir = dir - 1;
+    fimpara;
+    retorne custo + 3;
+fim
+
+procedimento msort(v: inteiro[], tmp: inteiro[], esq: inteiro, dir: inteiro): inteiro
+inicio
+    variavel meio, custo: inteiro;
+    custo = 0;
+    se dir > esq entao
+        meio = (dir + esq) / 2;
+        msort(v, tmp, esq, meio);
+        msort(v, tmp, meio + 1, dir);
+        custo = custo + merge(v, tmp, esq, meio + 1, dir);
+    fimse;
+    retorne custo;
+fim
+
+procedimento mergesort(v: inteiro[]): inteiro
+inicio
+    variavel tmp: inteiro[];
+    tmp = novo inteiro [tamanho(v)];
+    retorne msort(v, tmp, 0, tamanho(v) - 1);
+fim
+
+/**** quicksort ****/
+variavel custoq: inteiro;
+
+procedimento iMenorFimEviMenorPivo(i: inteiro, vfim: inteiro, v: inteiro[], pivo: inteiro): inteiro
+inicio
+    se i < vfim entao se v[i] < pivo entao retorne 1; fimse; fimse;
+    retorne 0;
+fim
+
+/* particione */
+procedimento particione(v: inteiro[], ini: inteiro, vfim: inteiro): inteiro
+inicio
+    variavel i, j, pivo: inteiro;
+    i = ini + 1;
+    j = vfim;
+    pivo = v[ini];
+    enquanto i <= j faca
+        enquanto iMenorFimEviMenorPivo(i, vfim, v, pivo) == 1 faca
+            i = i + 1;
+            custoq = custoq + 1;
+        fimenquanto
+        enquanto v[j] > pivo faca
+            j = j - 1;
+            custoq = custoq + 1;
+        fimenquanto
+        custoq = custoq + 2;
+        se i < j entao
+            troque(v, i, j);
+            i = i + 1;
+            j = j - 1;
+        senao
+            i = i + 1;
+        fimse;
+    fimenquanto;
+    troque(v, j, ini);
+    retorne j;
+fim
+
+/* quicksort */
+procedimento quicksort(v: inteiro[], ini: inteiro, vfim: inteiro)
+inicio
+    se (vfim - ini) < 1 entao
+        retorne;
+    fimse
+    variavel p: inteiro;
+    p = particione(v, ini, vfim);
+    se ini < (p - 1) entao
+        quicksort(v, ini, p - 1);
+    fimse
+    se vfim > (p + 1) entao
+        quicksort(v, p + 1, vfim);
+    fimse 	
+fim
+
+inicio
+    variavel custo, i: inteiro; 
+    variavel v, v2: inteiro[];
+
+    v = novo inteiro { 61, 57, 72, 18, 8, 30, 21, 93, 67, 15, 78, 12, 81, 32, 27, 92 };
+    v2 = novo inteiro [tamanho(v)];
+
+    escreva(" ORIGINAL = "); imprime(v); escreva("\n");
+
+    copia(v2, v);
+    custo = bolha(v2);
+    escreva("    BOLHA = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custo = selecao(v2);
+    escreva("  SELECAO = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custo = insercao(v2);
+    escreva(" INSERCAO = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custo = mergesort(v2);
+    escreva("MERGESORT = "); imprime(v2); escreva("apos ", custo, " comparacoes\n");
+
+    copia(v2, v);
+    custoq = 0;
+    quicksort(v2, 0, tamanho(v2) - 1);
+    escreva("QUICKSORT = "); imprime(v2); escreva("apos ", custoq, " comparacoes\n");
+fim
+*/

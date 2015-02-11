@@ -87,7 +87,8 @@ public class Code {
 		System.exit(1);
             }
             pc++;
-        } else {
+        } else {	
+	    System.out.printf(" "+ x);
             buf[pc++] = (byte) x;
         }
     }
