@@ -1,5 +1,8 @@
-/*
-	Alunos : Daniel(21201910) e Denys(?????????)
+ /*
+       PacocaTeam
+       Alunos : 
+                Daniel(21201910)
+                Denys(21200320)
 */
 COMPILER MicroPortugol
 
@@ -40,10 +43,10 @@ PRODUCTIONS
 
 MicroPortugol = "algoritmo" id Linhas. 
 Linhas =  Comando { Comando }.
-Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def | Designador. 
+Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def| Designador . 
 
-Bloco_def = "inicio"  Linhas "fim" .
-Procedimento_def = "procedimento" id  "(" [id Tipo { "," id Tipo }] ")" [Tipo] "inicio" Linhas ["retorne" Exp ";"] "fim".
+Bloco_def = "inicio" Linhas "fim" .
+Procedimento_def = "procedimento" id  "(" [id Tipo { "," id Tipo }] ")" [Tipo] "inicio" Designador ["retorne" Exp ";"] "fim".
 Variavel_def = "variavel" id {"," id} Tipo ";".
 //"inteiro " = id linha abaixo
 Tipo = ":" "inteiro".
@@ -67,18 +70,19 @@ Leia_def = "leia" "(" strConst {"," strConst} ")" ";".
 /*Duvida, o valor da constante eh estatica logo so pode ser numeros o valor recebido*/
 Constante_def = "constante" id "=" Valor ";". 
 Condicao_def = Exp Op_relacional Exp.
-Op_relacional = "==" | "!=" | ">" | ">=" | "<".
+Op_relacional =   "!=" | ">" | ">=" | "<".
 
 /* Inicio - Regra de producao para expressoes aritmeticas*/
-Valor = num | Designador.
+Valor = num | Designador .
 Fator = Valor ([ ("*"|"/") Valor]).
 Termo = Fator ([ ( "+" |  "-" ) Fator ]).
 Exp = Termo { Termo }.
+//Designador = id X .
 Designador = id [ X ].
-X = Vetor_def |Chamada_parametros | Assinalamento_def.
-Vetor_def = "[" [Exp] "]".
+X = Vetor_def |Chamada_parametros .
+Vetor_def = "[" [Exp] "]" [Assinalamento_def] .
 Chamada_parametros = "(" Exp { "," Exp} ")" ";".
-Assinalamento_def = "="  (Exp | Novo_def) ";".
+Assinalamento_def = "=" Exp ";".
 /* Fim    - Regra de producao para expressoes aritmeticas*/
 
 END MicroPortugol.
