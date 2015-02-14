@@ -82,7 +82,7 @@ Designador = id [ X ].
 X = Vetor_def |Chamada_parametros .
 Vetor_def = "[" [Exp] "]" [Assinalamento_def] .
 Chamada_parametros = "(" Exp { "," Exp} ")" ";".
-Assinalamento_def = "=" Exp | Novo_def";".
+Assinalamento_def = "=" Exp ";".
 /* Fim    - Regra de producao para expressoes aritmeticas*/
 
 END MicroPortugol.
