@@ -41,7 +41,7 @@ IGNORE '\r' + '\n' + '\t'
 
 PRODUCTIONS
 
-MicroPortugol = /"algoritmo" id Linhas. 
+MicroPortugol = "algoritmo" id Linhas. 
 Linhas =  Comando { Comando }.
 Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def| Designador . 
 
@@ -60,7 +60,8 @@ Repita_def = "repita" Linhas  "ate" Condicao_def ";" .
 /* Inicio - Funcao com nome personalizado ou assinalamento */ 
 /* Fim - Funcao com nome personalizado ou assinalamento */ 
 
-Novo_def = "novo" "inteiro" ( "[" Exp "]" | "{" Exp { "," Exp } "}" ).
+
+															  
 Se_def = "se" Condicao_def "entao" Linhas ["senao" Linhas] "fimse".
 Caso_def = "caso" Valor Caso_seja_def { Caso_seja_def} "outrocaso" Linhas "fimcaso".
 Caso_seja_def = "seja" num "faca" Linhas.
@@ -71,18 +72,22 @@ Leia_def = "leia" "(" strConst {"," strConst} ")" ";".
 Constante_def = "constante" id "=" Valor ";". 
 Condicao_def = Exp Op_relacional Exp.
 Op_relacional =   "!=" | ">" | ">=" | "<".
+Designador = id [X].
+X = Vetor_def |Chamada_parametros.
+Vetor_def = "[" [Exp] "]" [Assinalamento_def]  ";".
+Chamada_parametros = "(" Exp { "," Exp} ")" ";".
+Assinalamento_def = "=" Assinalamento_valor.
+Assinalamento_valor = Exp | Novo_def.
+Novo_def = "novo" "inteiro" "[" Exp "]". //| "{" Exp { "," Exp } "}".
 
 /* Inicio - Regra de producao para expressoes aritmeticas*/
 Valor = num | Designador .
-Fator = Valor ([ ("*"|"/") Valor]).
-Termo = Fator ([ ( "+" |  "-" ) Fator ]).
-Exp = Termo { Termo }.
+Fator = Valor {F Valor}  .
+F = "*" | "/".
+Termo = Fator {T Fator} .
+T = "+" | "-".
+Exp = Termo {Termo}.
 //Designador = id X .
-Designador = id [ X ].
-X = Vetor_def |Chamada_parametros .
-Vetor_def = "[" [Exp] "]" [Assinalamento_def] .
-Chamada_parametros = "(" Exp { "," Exp} ")" ";".
-Assinalamento_def = "=" Exp ";".
 /* Fim    - Regra de producao para expressoes aritmeticas*/
 
 END MicroPortugol.
