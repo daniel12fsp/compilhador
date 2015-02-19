@@ -41,53 +41,145 @@ IGNORE '\r' + '\n' + '\t'
 
 PRODUCTIONS
 
-MicroPortugol = /"algoritmo" id Linhas. 
-Linhas =  Comando { Comando }.
-Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def| Designador . 
 
-Bloco_def = "inicio" Linhas "fim" .
-Procedimento_def = "procedimento" id  "(" [id Tipo { "," id Tipo }] ")" [Tipo] "inicio" Designador ["retorne" Exp ";"] "fim".
-Variavel_def = "variavel" id {"," id} Tipo ";".
-//"inteiro " = id linha abaixo
-Tipo = ":" "inteiro".
-/* Inicio - EBNF Repeticao */
-Repeticao_def = Para_def | Enquanto_def | Repita_def.
-Para_def = "para" id "=" Exp "ate" Exp "faca" Linhas "fimpara".
-Enquanto_def = "enquanto" Condicao_def "faca" Linhas "fimenquanto".
-Repita_def = "repita" Linhas  "ate" Condicao_def ";" .
-/* Fim    - EBNF Repeticao */
+/* 
+ * O escopo universo foi modelado de forma que contenha um conjunto de variaveis globais,
+ * constantes ou procedimentos e apenas UM bloco principal, seguindo as restricoes
+ * definidas pela linguagem Algol 68
+*/
 
-/* Inicio - Funcao com nome personalizado ou assinalamento */ 
-/* Fim - Funcao com nome personalizado ou assinalamento */ 
+MicroPortugol = "algoritmo" id {declaracao_var | declaracao_const | bloco_procedimento} bloco_principal.
 
-Novo_def = "novo" "inteiro" ( "[" Exp "]" | "{" Exp { "," Exp } "}" ).
-Se_def = "se" Condicao_def "entao" Linhas ["senao" Linhas] "fimse".
-Caso_def = "caso" Valor Caso_seja_def { Caso_seja_def} "outrocaso" Linhas "fimcaso".
-Caso_seja_def = "seja" num "faca" Linhas.
-Escreva_def = "escreva" "(" strConst {"," strConst } ")" ";".
-Leia_def = "leia" "(" strConst {"," strConst} ")" ";".
+/* 
+ * "declaracao_var" não termina com ; pois pode pertencer tanto a declaracao global quanto
+ * a regra "instrucoes" e para efeitos de simplificacao tal regra foi definada terminando
+ * com ";". Isso foi necessario para evitar apenas reconhecer ";;" na regra instrucoes.  
+*/
 
-/*Duvida, o valor da constante eh estatica logo so pode ser numeros o valor recebido*/
-Constante_def = "constante" id "=" Valor ";". 
-Condicao_def = Exp Op_relacional Exp.
-Op_relacional =   "!=" | ">" | ">=" | "<".
 
-/* Inicio - Regra de producao para expressoes aritmeticas*/
-Valor = num | Designador .
-Fator = Valor ([ ("*"|"/") Valor]).
-Termo = Fator ([ ( "+" |  "-" ) Fator ]).
-Exp = Termo { Termo }.
-//Designador = id X .
-Designador = id [ X ].
-X = Vetor_def |Chamada_parametros .
-Vetor_def = "[" [Exp] "]" [Assinalamento_def] .
-Chamada_parametros = "(" Exp { "," Exp} ")" ";".
-Assinalamento_def = "=" Exp ";".
-/* Fim    - Regra de producao para expressoes aritmeticas*/
+// Bloco de declaracao de variaveis e constantes
+
+declaracao_var = "variavel" id {"," id} tipo ";".
+tipo = ":" "inteiro" ["[" "]"].
+declaracao_const = "constante" id "=" num ";".
+
+//O designador indica uma variavel ou um vetor
+designador = id ["[" expressao "]"] .
+
+// Funcoes e parametros
+parametros = id tipo {"," id tipo}.
+parametros_passados = "(" [expressao {"," expressao}] ")".
+
+bloco_procedimento = "procedimento" id "(" [parametros] ")" [tipo] "inicio"
+ instrucoes "fim".
+
+retorno = "retorne" [expressao] ";". 
+
+
+bloco_principal = "inicio" instrucoes "fim".
+
+/* 
+ * Existe um grande problema em relacao ao reconhecimento de designadores e
+ * chamada de funcoes (ambas as regras comecam com o token "id". A maneira a qual a
+ * ambiguidade foi solucionada consiste na seguinte producao utilizada na regra "comando"
+ * : designador (assinalamento | parametros_passados) 
+ * Incoerencias como "funcao[]();" serao tratados semanticamente
+*/
+comando = (declaracao_var | repeticao_def | condicional_def | io_def | 
+designador (assinalamento | parametros_passados) ";" | retorno).
+
+
+instrucoes = {comando}.
+
+
+assinalamento = "=" expressao .
+aloc_vetor =  "novo" "inteiro" ("["
+expressao "]" | "{" num {"," num} "}").
+
+repeticao_def = para_def | enquanto_def | repita_def.
+para_def = "para" id "=" expressao "ate" expressao ["passo" expressao] "faca" instrucoes "fimpara"
+[";"].
+
+enquanto_def = "enquanto" condicao "faca" instrucoes "fimenquanto" [";"].
+operador_relacional = "!=" | ">" | "<" | ">=" | "<=" | "==".
+
+repita_def = "repita" instrucoes "ate" condicao ";".
+
+// Comandos condicionais
+
+condicional_def = se_def | caso_def.
+
+se_def = "se" condicao "entao" instrucoes ["senao" instrucoes] "fimse" [";"]. 
+caso_def = "caso" designador caso_seja_def {caso_seja_def} "outrocaso" ":" instrucoes "fimcaso".
+caso_seja_def = "seja" expressao "faca" instrucoes.
+condicao = expressao operador_relacional expressao.
+
+
+// Funcoes de entrada e saida
+io_def = escreva_def | leia_def.
+
+// -- leia(n); -> se n for invalido, entao retorna 0.
+leia_def = "leia" "(" designador ")" ";".
+escreva_def = "escreva" "(" (strConst | designador [parametros_passados]) 
+{"," (strConst | designador [parametros_passados])} ")" ";".
+
+// Tratamento de expressoes
+
+expressao = termo {("+" | "-") termo}.
+termo = fator {("*" | "/" | "%") fator}.
+fator = num | designador [parametros_passados] | "(" expressao ")" | aloc_vetor.
 
 END MicroPortugol.
 
-
-
-
-
+ 
+//
+//MicroPortugol = "algoritmo" id Linhas. 
+//Linhas =  Comando { Comando }.
+//Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def| Designador . 
+//
+//Bloco_def = "inicio" Linhas "fim" .
+//Procedimento_def = "procedimento" id  "(" [id Tipo { "," id Tipo }] ")" [Tipo] "inicio" Designador ["retorne" Exp ";"] "fim".
+//Variavel_def = "variavel" id {"," id} Tipo ";".
+////"inteiro " = id linha abaixo
+//Tipo = ":" "inteiro".
+///* Inicio - EBNF Repeticao */
+//Repeticao_def = Para_def | Enquanto_def | Repita_def.
+//Para_def = "para" id "=" Exp "ate" Exp "faca" Linhas "fimpara".
+//Enquanto_def = "enquanto" Condicao_def "faca" Linhas "fimenquanto".
+//Repita_def = "repita" Linhas  "ate" Condicao_def ";" .
+///* Fim    - EBNF Repeticao */
+//
+///* Inicio - Funcao com nome personalizado ou assinalamento */ 
+///* Fim - Funcao com nome personalizado ou assinalamento */ 
+//
+//Novo_def = "novo" "inteiro" ( "[" Exp "]" | "{" Exp { "," Exp } "}" ).
+//Se_def = "se" Condicao_def "entao" Linhas ["senao" Linhas] "fimse".
+//Caso_def = "caso" Valor Caso_seja_def { Caso_seja_def} "outrocaso" Linhas "fimcaso".
+//Caso_seja_def = "seja" num "faca" Linhas.
+//Escreva_def = "escreva" "(" strConst {"," strConst } ")" ";".
+//Leia_def = "leia" "(" strConst {"," strConst} ")" ";".
+//
+///*Duvida, o valor da constante eh estatica logo so pode ser numeros o valor recebido*/
+//Constante_def = "constante" id "=" Valor ";". 
+//Condicao_def = Exp Op_relacional Exp.
+//Op_relacional =   "!=" | ">" | ">=" | "<".
+//
+///* Inicio - Regra de producao para expressoes aritmeticas*/
+//Valor = num | Designador .
+//Fator = Valor ([ ("*"|"/") Valor]).
+//Termo = Fator ([ ( "+" |  "-" ) Fator ]).
+//Exp = Termo { Termo }.
+////Designador = id X .
+//Designador = id [ X ].
+//X = Vetor_def |Chamada_parametros .
+//Vetor_def = "[" [Exp] "]" [Assinalamento_def] .
+//Chamada_parametros = "(" Exp { "," Exp} ")" ";".
+//Assinalamento_def = "=" Exp ";".
+///* Fim    - Regra de producao para expressoes aritmeticas*/
+//
+//END MicroPortugol.
+//
+//
+//
+//
+//
