@@ -120,7 +120,17 @@ bloco_procedimento = "procedimento" id "(" [parametros] ")" [":" tipo] "inicio"
 retorno = "retorne" [expressao] ";". 
 
 
-bloco_principal = "inicio" instrucoes "fim".
+bloco_principal                         (. ofuncAtual = ts.inserir(Obj.Func,
+                                           "main", getTipo("void", false));
+                                           ts.abrirEscopo("Func main");
+                                        .)
+
+= "inicio" 
+  instrucoes 
+  "fim"                                 (. ofuncAtual.locais = ts.escopoAtual.locais;
+                                           ts.fecharEscopo();
+                                        .)
+  .
 
 /* 
  * Existe um grande problema em relacao ao reconhecimento de designadores e
