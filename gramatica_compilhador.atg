@@ -57,6 +57,10 @@ COMPILER MicroPortugol
 		errors.SemErr(t.line, t.col, msg);
 	}
 
+	public int toInteger(String str){
+		return Interger.parser(str);
+	}
+
 CHARACTERS
 	semAspas 	= ANY - '"'.
 	letra 		= "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_".
@@ -90,9 +94,9 @@ MicroPortugol                           (. ofuncAtual = null;
 
 
 = "algoritmo" id 
-        {declaracao_var 
-        | declaracao_const 
-        | bloco_procedimento
+        {declaracao_var| 
+         declaracao_const|
+         bloco_procedimento
         } 
         bloco_principal                (. ts.fecharEscopo(); .)
         .
@@ -153,12 +157,9 @@ declaracao_const                        (.
                                            obj = ts.inserir(Obj.Const, t.val, obj.tipo); 
                                         .) 
         "=" 
-        num                             (. obj.val = Integer.parseInt(t.val); .)
+        num                             (. obj.val = toInteger(t.val); .)
         ";"
         .
-
-//O designador indica uma variavel ou um vetor
-designador = id ["[" expressao "]"] .
 
 // Funcoes e parametros
 parametros = (. NTipo ntipo; .) 
@@ -209,19 +210,55 @@ bloco_principal                         (. ofuncAtual = ts.inserir(Obj.Func,
  * ambiguidade foi solucionada consiste na seguinte producao utilizada na regra "comando"
  * : designador (assinalamento | parametros_passados) 
  * Incoerencias como "funcao[]();" serao tratados semanticamente
+
 */
+
+//O designador indica uma variavel ou um vetor
+
+designador =							(. String nome; int valor;.) 
+	id									(. nome = t.val;
+										   op  = new Operand(ts.busca(nome));
+	
+	.)
+											
+[										
+	"["									(. if(op.tipo).)
+		expressao						(. valor = Interger.parserInt(t.val).)
+										(. .)
+	"]"					
+] .										
+
 comando = (declaracao_var | repeticao_def | condicional_def | io_def | 
 designador (assinalamento | parametros_passados) ";" | retorno).
 
 
 // Definicao de instrucoes e suas respectivas estruturas
 
-instrucoes = {comando}.
+instrucoes								(. Operand op = null; .)
+	= 
+	{
+	comando
+	}.
 
 
 assinalamento = "=" expressao .
-aloc_vetor =  "novo" "inteiro" ("["
-expressao "]" | "{" num {"," num} "}").
+aloc_vetor =  "novo"					(. op = null; List<Interger> lista = null; String tipo.)
+	"inteiro"							
+	(
+	"["
+		expressao<out op>				(. if( op.tipo != ts.tipoInt)
+												erro("A quantidade de elementos do vetor deve ser uma variavel de tipo inteira");
+										.) 
+	"]" | 
+	"{"
+		num								(. lista.add(toInteger(t.val); .)
+			{
+				"," 
+					num					(. lista.add(toInteger(t.val);) .)
+			} 
+	"}"									(. op = new Operand(lista.size()); .)
+	)									(. op.tipo = new Struct(Struct.vetor, obj.tipo); .)
+	.
 
 repeticao_def = para_def | enquanto_def | repita_def.
 para_def = "para" id "=" expressao "ate" expressao ["passo" expressao] "faca" instrucoes "fimpara"
@@ -252,9 +289,53 @@ escreva_def = "escreva" "(" (strConst | designador [parametros_passados])
 
 // Tratamento de expressoes
 
-expressao = termo {("+" | "-") termo}.
-termo = fator {("*" | "/" | "%") fator}.
-fator = num | designador [parametros_passados] | "(" expressao ")" | aloc_vetor.
+expressao<out Operand op>			(. Operand op2; op = null.)
+
+	= 	termo<out op>				(. if(op.tipo != ts.tipoInt)
+											erro("Operando de tipo nao-inteiro")
+									.)
+	{
+		(
+			"+" |
+			"-"
+		) 
+			termo					(. if(op.tipo != ts.tipoInt || op.tipo != ts.tipoInt)
+											erro("Operando de tipo nao-inteiro")
+									.)
+
+	}.
+termo<out Operand op>				(. Operand op2; op = null.)
+	= 
+		fator<out op>
+		{
+			(
+				"*" | 
+				"/" | 
+				"%"
+			) 
+			
+			fator<out op2>			(. if(op.tipo != ts.tipoInt || op.tipo != ts.tipoInt)
+											erro("Operando de tipo nao-inteiro")
+									.)
+
+		}.
+
+fator<out Operand op>				(.op=null; List<Interger> lista = null;.) 
+
+	= 
+		num							(.op = new Operand(toInteger(t.val)).) 
+		| designador				//<out alguma coisa> ainda nao implementado.
+		[
+			parametros_passados
+		] | 
+					
+		"(" 
+		
+			expressao<out op>		
+
+		")" | 
+		
+		aloc_vetor<out op>.				(..)
 
 END MicroPortugol.
 
