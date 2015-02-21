@@ -7,6 +7,7 @@
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 class NDesig {
         String nome;
@@ -17,6 +18,21 @@ class NDesig {
         }
         public String getNome() {
                 return nome;
+        }
+        public boolean vetor() {
+                return vec;
+        }
+}
+
+class NTipo {
+        String tipo;
+        boolean vec;
+        public NTipo(String t, boolean v) {
+                tipo = t;
+                vec = v;
+        }
+        public String getTipo() {
+                return tipo;
         }
         public boolean vetor() {
                 return vec;
@@ -90,12 +106,46 @@ MicroPortugol                           (. ofuncAtual = null;
 
 // Bloco de declaracao de variaveis e constantes
 
-declaracao_var
+declaracao_var                          (.  
+                                           ArrayList<String> nomeVariaveis 
+                                                = new ArrayList();
+                                           NTipo ntipo;
+                                        .)
 
- = "variavel" id {"," id} ":" tipo ";".
-tipo = "inteiro" ["[" "]"].
+ = 
+"variavel" 
+id                                      (. nomeVariaveis.add(t.val); .) 
+{","
+ id                                     (. nomeVariaveis.add(t.val); .)
+} 
+":" 
+tipo<out ntipo>                         (. Struct st = getTipo(ntipo.getTipo(),
+                                                ntipo.vetor());
 
-declaracao_const                        (. String tipo = "inteiro";
+                                           if (st == ts.semTipo)
+                                                erro("A variável não pode ter tipo desconhecido");
+                                                 
+                                           Iterator iter = nomeVariaveis.iterator();
+                                        
+                                           while (iter.hasNext()) {
+                                                ts.inserir(Obj.Var, iter.next().toString(), st);
+                                           }
+                                           
+                                        .)
+                                                 
+";".
+
+
+tipo<out NTipo ntipo>                   (. boolean vet = false; 
+                                           String tip;
+                                        .)
+=                                       
+"inteiro"                               (. tip = t.val; .)
+["[" "]"                                (. vet = true; .)
+]                                       (. ntipo = new NTipo(tip, vet); .)
+.      
+
+declaracao_const                        (. 
                                            Obj obj;
                                         .)   
 = "constante" 
@@ -111,10 +161,12 @@ declaracao_const                        (. String tipo = "inteiro";
 designador = id ["[" expressao "]"] .
 
 // Funcoes e parametros
-parametros = id ":" tipo {"," id ":" tipo}.
+parametros = (. NTipo ntipo; .) 
+id ":" tipo<out ntipo> {"," id ":" tipo<out ntipo>}.
 parametros_passados = "(" [expressao {"," expressao}] ")".
 
-bloco_procedimento = "procedimento" id "(" [parametros] ")" [":" tipo] "inicio"
+bloco_procedimento                      (. NTipo ntipo;.)
+= "procedimento" id "(" [parametros] ")" [":" tipo<out ntipo>] "inicio"
  instrucoes "fim".
 
 retorno = "retorne" [expressao] ";". 
