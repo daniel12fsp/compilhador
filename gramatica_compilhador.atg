@@ -165,9 +165,28 @@ parametros = (. NTipo ntipo; .)
 id ":" tipo<out ntipo> {"," id ":" tipo<out ntipo>}.
 parametros_passados = "(" [expressao {"," expressao}] ")".
 
-bloco_procedimento                      (. NTipo ntipo;.)
-= "procedimento" id "(" [parametros] ")" [":" tipo<out ntipo>] "inicio"
- instrucoes "fim".
+bloco_procedimento                      (. NTipo ntipo; 
+                                           String nome;
+                                           boolean tipoInformado = false;
+                                        .)
+= "procedimento" 
+id                                      (. nome = t.val; 
+                                           ofuncAtual = ts.inserir(Obj.Func,
+                                           nome,
+                                           getTipo("void", false));
+                                           ts.abrirEscopo("Func " + nome); 
+                                        .) 
+"(" 
+[parametros] 
+")" 
+[":" tipo<out ntipo>                   
+] 
+"inicio"
+ instrucoes 
+"fim"                                   (. ofuncAtual.locais = ts.escopoAtual.locais;
+                                           ts.fecharEscopo();
+                                        .)
+.
 
 retorno = "retorne" [expressao] ";". 
 
