@@ -4,6 +4,25 @@
                 Daniel(21201910)
                 Denys(21200320)
 */
+
+import java.util.List;
+import java.util.ArrayList;
+
+class NDesig {
+        String nome;
+        boolean vec;
+        public NDesig(String n, boolean v) {
+                nome = n;
+                vec = v;
+        }
+        public String getNome() {
+                return nome;
+        }
+        public boolean vetor() {
+                return vec;
+        }
+}
+
 COMPILER MicroPortugol
 
 	private Tab ts;
@@ -48,7 +67,19 @@ PRODUCTIONS
  * definidas pela linguagem Algol 68
 */
 
-MicroPortugol = "algoritmo" id {declaracao_var | declaracao_const | bloco_procedimento} bloco_principal.
+MicroPortugol                           (. ofuncAtual = null; 
+                                           ts = new Tab(this);
+                                           ts.abrirEscopo("Global");
+                                        .) 
+
+
+= "algoritmo" id 
+        {declaracao_var 
+        | declaracao_const 
+        | bloco_procedimento
+        } 
+        bloco_principal                (. ts.fecharEscopo(); .)
+        .
 
 /* 
  * "declaracao_var" não termina com ; pois pode pertencer tanto a declaracao global quanto
@@ -59,18 +90,31 @@ MicroPortugol = "algoritmo" id {declaracao_var | declaracao_const | bloco_proced
 
 // Bloco de declaracao de variaveis e constantes
 
-declaracao_var = "variavel" id {"," id} tipo ";".
-tipo = ":" "inteiro" ["[" "]"].
-declaracao_const = "constante" id "=" num ";".
+declaracao_var
+
+ = "variavel" id {"," id} ":" tipo ";".
+tipo = "inteiro" ["[" "]"].
+
+declaracao_const                        (. String tipo = "inteiro";
+                                           Obj obj;
+                                        .)   
+= "constante" 
+        id                              (. obj = ts.buscar("inteiro");
+                                           obj = ts.inserir(Obj.Const, t.val, obj.tipo); 
+                                        .) 
+        "=" 
+        num                             (. obj.val = Integer.parseInt(t.val); .)
+        ";"
+        .
 
 //O designador indica uma variavel ou um vetor
 designador = id ["[" expressao "]"] .
 
 // Funcoes e parametros
-parametros = id tipo {"," id tipo}.
+parametros = id ":" tipo {"," id ":" tipo}.
 parametros_passados = "(" [expressao {"," expressao}] ")".
 
-bloco_procedimento = "procedimento" id "(" [parametros] ")" [tipo] "inicio"
+bloco_procedimento = "procedimento" id "(" [parametros] ")" [":" tipo] "inicio"
  instrucoes "fim".
 
 retorno = "retorne" [expressao] ";". 
@@ -88,6 +132,8 @@ bloco_principal = "inicio" instrucoes "fim".
 comando = (declaracao_var | repeticao_def | condicional_def | io_def | 
 designador (assinalamento | parametros_passados) ";" | retorno).
 
+
+// Definicao de instrucoes e suas respectivas estruturas
 
 instrucoes = {comando}.
 
@@ -131,55 +177,3 @@ fator = num | designador [parametros_passados] | "(" expressao ")" | aloc_vetor.
 
 END MicroPortugol.
 
- 
-//
-//MicroPortugol = "algoritmo" id Linhas. 
-//Linhas =  Comando { Comando }.
-//Comando = Bloco_def | Procedimento_def | Variavel_def | Repeticao_def | Se_def | Caso_def | Escreva_def | Leia_def | Constante_def| Designador . 
-//
-//Bloco_def = "inicio" Linhas "fim" .
-//Procedimento_def = "procedimento" id  "(" [id Tipo { "," id Tipo }] ")" [Tipo] "inicio" Designador ["retorne" Exp ";"] "fim".
-//Variavel_def = "variavel" id {"," id} Tipo ";".
-////"inteiro " = id linha abaixo
-//Tipo = ":" "inteiro".
-///* Inicio - EBNF Repeticao */
-//Repeticao_def = Para_def | Enquanto_def | Repita_def.
-//Para_def = "para" id "=" Exp "ate" Exp "faca" Linhas "fimpara".
-//Enquanto_def = "enquanto" Condicao_def "faca" Linhas "fimenquanto".
-//Repita_def = "repita" Linhas  "ate" Condicao_def ";" .
-///* Fim    - EBNF Repeticao */
-//
-///* Inicio - Funcao com nome personalizado ou assinalamento */ 
-///* Fim - Funcao com nome personalizado ou assinalamento */ 
-//
-//Novo_def = "novo" "inteiro" ( "[" Exp "]" | "{" Exp { "," Exp } "}" ).
-//Se_def = "se" Condicao_def "entao" Linhas ["senao" Linhas] "fimse".
-//Caso_def = "caso" Valor Caso_seja_def { Caso_seja_def} "outrocaso" Linhas "fimcaso".
-//Caso_seja_def = "seja" num "faca" Linhas.
-//Escreva_def = "escreva" "(" strConst {"," strConst } ")" ";".
-//Leia_def = "leia" "(" strConst {"," strConst} ")" ";".
-//
-///*Duvida, o valor da constante eh estatica logo so pode ser numeros o valor recebido*/
-//Constante_def = "constante" id "=" Valor ";". 
-//Condicao_def = Exp Op_relacional Exp.
-//Op_relacional =   "!=" | ">" | ">=" | "<".
-//
-///* Inicio - Regra de producao para expressoes aritmeticas*/
-//Valor = num | Designador .
-//Fator = Valor ([ ("*"|"/") Valor]).
-//Termo = Fator ([ ( "+" |  "-" ) Fator ]).
-//Exp = Termo { Termo }.
-////Designador = id X .
-//Designador = id [ X ].
-//X = Vetor_def |Chamada_parametros .
-//Vetor_def = "[" [Exp] "]" [Assinalamento_def] .
-//Chamada_parametros = "(" Exp { "," Exp} ")" ";".
-//Assinalamento_def = "=" Exp ";".
-///* Fim    - Regra de producao para expressoes aritmeticas*/
-//
-//END MicroPortugol.
-//
-//
-//
-//
-//
