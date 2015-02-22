@@ -157,6 +157,7 @@ public class Parser {
 				declaracao_const();
 			} else {
 				bloco_procedimento();
+				objCode.setDataSize(ts.escopoAtual.nVars);
 			}
 		}
 		bloco_principal();
@@ -169,14 +170,13 @@ public class Parser {
 		NTipo ntipo;
 		
 		Expect(5);
+		debug("variavel"); 
 		Expect(1);
 		nomeVariaveis.add(t.val); 
-		debug("aqui1"); 
 		while (la.kind == 6) {
 			Get();
 			Expect(1);
 			nomeVariaveis.add(t.val); 
-			debug("aqui2"); 
 		}
 		Expect(7);
 		ntipo = tipo();
@@ -194,7 +194,6 @@ public class Parser {
 		}
 		
 		Expect(8);
-		objCode.setDataSize(ts.escopoAtual.nVars);
 	}
 
 	void declaracao_const() {
@@ -295,6 +294,7 @@ public class Parser {
 			Get();
 			Expect(11);
 			vet = true; 
+			debug(tip + " eh Vetor");
 		}
 		ntipo = new NTipo(tip, vet); 
 		return ntipo;
@@ -356,7 +356,7 @@ public class Parser {
 
 	Operand  expressao() {
 		Operand  op;
-		Operand op2; op = null; 
+		Operand op2; int operador; op = null; 
 		op = termo();
 		if(op.tipo != ts.tipoInt)
 		erro("Operando de tipo nao-inteiro");
@@ -364,12 +364,17 @@ public class Parser {
 		while (la.kind == 44 || la.kind == 45) {
 			if (la.kind == 44) {
 				Get();
+				operador = objCode.add; 
 			} else {
 				Get();
+				operador = objCode.sub; 
 			}
+			objCode.load(op); 
 			op2 = termo();
+			objCode.load(op2); 
 			if(op.tipo != ts.tipoInt || op2.tipo != ts.tipoInt)
 			erro("Operando de tipo nao-inteiro");
+			objCode.put(operador);
 			
 		}
 		return op;
@@ -395,7 +400,8 @@ public class Parser {
 		switch (la.kind) {
 		case 5: {
 			declaracao_var();
-			debug("var");
+			debug("dec_var");
+			objCode.setDataSize(ts.escopoAtual.nVars);
 			break;
 		}
 		case 20: case 25: case 33: {
@@ -469,15 +475,20 @@ public class Parser {
 		
 		if (la.kind == 10) {
 			Get();
+			objCode.load(op); 
 			indice = expressao();
-			if(indice.tipo.cat == Struct.Vetor){
+			if(op.tipo.cat == Struct.Vetor){
 			if(indice.tipo.cat != Struct.Int)
-			erro("O indice deve ser um valor inteiro");
+				erro("O indice deve ser um valor inteiro");
+			objCode.load(indice);
+			op.cat = Operand.Elem;
+			op.tipo =  op.tipo.tipoElemento;
 			}else{
-			erro("A variavel "+ nome + " nao eh um vetor");
+				erro("A variavel "+ nome + " nao eh um vetor");
 			}
-			
+					
 			Expect(11);
+			debug("]");
 		}
 		return op;
 	}
@@ -640,19 +651,25 @@ public class Parser {
 
 	Operand  termo() {
 		Operand  op;
-		Operand op2; op = null;
+		Operand op2; int operador; op = null;
 		op = fator();
 		while (la.kind == 46 || la.kind == 47 || la.kind == 48) {
 			if (la.kind == 46) {
 				Get();
+				operador = objCode.mul; 
 			} else if (la.kind == 47) {
 				Get();
+				operador = objCode.div; 
 			} else {
 				Get();
+				operador = objCode.rem; 
 			}
+			objCode.load(op); 
 			op2 = fator();
-			if(op.tipo != ts.tipoInt || op.tipo != ts.tipoInt)
+			objCode.load(op2); 
+			if(op.tipo != ts.tipoInt || op2.tipo != ts.tipoInt)
 			erro("Operando de tipo nao-inteiro");
+			objCode.put(operador);
 			
 		}
 		return op;
@@ -666,7 +683,6 @@ public class Parser {
 			op = new Operand(toInteger(t.val)); 
 		} else if (la.kind == 1) {
 			op = designador();
-			System.out.println("aqui!");	
 			if (la.kind == 14) {
 				parametros_passados(op);
 				if (op.tipo == ts.semTipo)
@@ -694,8 +710,8 @@ public class Parser {
 		Operand  op;
 		Expect(49);
 		op = null; List<Integer> lista = null; NTipo ntipo; 
-		ntipo = tipo();
-		Obj obj = ts.buscar(ntipo.getTipo()); 
+		Expect(9);
+		Obj obj = ts.buscar("inteiro"); 
 		if (la.kind == 10) {
 			Get();
 			op = expressao();

@@ -102,7 +102,8 @@ MicroPortugol                           (.
 = "algoritmo" id 
         {declaracao_var| 
          declaracao_const|
-         bloco_procedimento
+         bloco_procedimento				(.objCode.setDataSize(ts.escopoAtual.nVars);.)
+
         } 
         bloco_principal                (. ts.fecharEscopo(); .)
         .
@@ -123,10 +124,10 @@ declaracao_var                          (.
                                         .)
 
  = 
-"variavel"								
-id                                      (. nomeVariaveis.add(t.val); .) (. debug("aqui1"); .) 
+"variavel"								(. debug("variavel"); .)	
+id                                      (. nomeVariaveis.add(t.val); .)  
 {","
- id                                     (. nomeVariaveis.add(t.val); .)(. debug("aqui2"); .) 
+ id                                     (. nomeVariaveis.add(t.val); .) 
 } 
 ":" 
 tipo<out ntipo>                         (. Struct st = getTipo(ntipo.getTipo(),
@@ -143,8 +144,7 @@ tipo<out ntipo>                         (. Struct st = getTipo(ntipo.getTipo(),
                                            }
                                         .)
                                                  
-";"										(.objCode.setDataSize(ts.escopoAtual.nVars);.)
-.
+";"										.
 
 
 tipo<out NTipo ntipo>                   (. boolean vet = false; 
@@ -152,7 +152,7 @@ tipo<out NTipo ntipo>                   (. boolean vet = false;
                                         .)
 =                                       
 "inteiro"                               (. tip = t.val; .)
-[ "[" "]"                                (. vet = true; .)
+[ "[" "]"                                (. vet = true; .) (. debug(tip + " eh Vetor");.)
 ]                                       (. ntipo = new NTipo(tip, vet); .)
 .      
 
@@ -289,7 +289,8 @@ comando									(. Operand op = null; .)
 	= 
 
 	(
-		declaracao_var (. debug("var");.)
+		declaracao_var (. debug("dec_var");.)(.objCode.setDataSize(ts.escopoAtual.nVars);.)
+
 
 		| 
 		repeticao_def (. debug("rep");.)
@@ -446,7 +447,7 @@ fator<out Operand op>				(.op=null; .)
 
 	= 
 		num								(.op = new Operand(toInteger(t.val)); .) 
-		| designador<out op>			(. System.out.println("aqui!");	.)	
+		| designador<out op>				
 		[
 			parametros_passados<op>		(.
 			
@@ -502,14 +503,16 @@ aloc_vetor<out Operand op> =
 designador<out Operand op> =							(.String nome; Operand indice = null; .) 
 	id													(. nome = t.val;
 														   op  = new Operand(ts.buscar(nome));
-	
 														.)
 											
-[										
-	"[" 
-		expressao<out indice>								(. if(indice.tipo.cat == Struct.Vetor){
+[ "["													(. objCode.load(op); .)
+		expressao<out indice>							(. //objCode.load(indice);	
+														 if(op.tipo.cat == Struct.Vetor){
 																if(indice.tipo.cat != Struct.Int)
 																	erro("O indice deve ser um valor inteiro");
+																objCode.load(indice);
+																op.cat = Operand.Elem;
+																op.tipo =  op.tipo.tipoElemento;
 															}else{
 
 																erro("A variavel "+ nome + " nao eh um vetor");
@@ -518,7 +521,7 @@ designador<out Operand op> =							(.String nome; Operand indice = null; .)
 	
 	
 														.)
-	"]"					
+	"]"													(. debug("]");.)	
 ] .										
 
 

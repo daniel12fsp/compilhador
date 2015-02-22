@@ -1,11 +1,14 @@
-/*
+/*v: inteiro[], ini: inteiro, vfim: inteiro
 	comparacao de metodos de ordenacao, Marco, 2014
+i = (1 + 2) + v[i+4*6]  ;
 */
 
 
 algoritmo ComparacaoDeAlgoritmosOrdenacao
 
 inicio
-    variavel i,j : inteiro;
-    i = 1 + 2 ;
+    variavel v1, v, v2 : inteiro[];
+    variavel i, j ,tmp: inteiro;
+
+i = (1 + 2) * v[i+4*6]  ;
 fim
