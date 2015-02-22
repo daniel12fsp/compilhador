@@ -43,9 +43,10 @@ COMPILER MicroPortugol
 
 	private Tab ts;
 	private Obj ofuncAtual;
+	private Operand op;
 
 	private Code objCode;
-
+	
 	private Struct getTipo(String tipo, boolean vec) { 
 		Obj o = ts.buscar(tipo);
 		Struct st = o.tipo;
@@ -58,7 +59,11 @@ COMPILER MicroPortugol
 	}
 
 	public int toInteger(String str){
-		return Interger.parser(str);
+		return Integer.parseInt(str);
+	}
+
+	public void debug(String str){
+		System.out.println(str);
 	}
 
 CHARACTERS
@@ -87,7 +92,8 @@ PRODUCTIONS
  * definidas pela linguagem Algol 68
 */
 
-MicroPortugol                           (. ofuncAtual = null; 
+MicroPortugol                           (. 
+										   ofuncAtual = null; 
                                            ts = new Tab(this);
                                            ts.abrirEscopo("Global");
                                         .) 
@@ -117,27 +123,28 @@ declaracao_var                          (.
                                         .)
 
  = 
-"variavel" 
-id                                      (. nomeVariaveis.add(t.val); .) 
+"variavel"								
+id                                      (. nomeVariaveis.add(t.val); .) (. debug("aqui1"); .) 
 {","
- id                                     (. nomeVariaveis.add(t.val); .)
+ id                                     (. nomeVariaveis.add(t.val); .)(. debug("aqui2"); .) 
 } 
 ":" 
 tipo<out ntipo>                         (. Struct st = getTipo(ntipo.getTipo(),
                                                 ntipo.vetor());
-
+											debug(ntipo.getTipo());
                                            if (st == ts.semTipo)
                                                 erro("A variável não pode ter tipo desconhecido");
                                                  
                                            Iterator iter = nomeVariaveis.iterator();
-                                        
+										   debug("npars++");
+										   //ofuncAtual.nPars  = nomeVariaveis.size();
                                            while (iter.hasNext()) {
                                                 ts.inserir(Obj.Var, iter.next().toString(), st);
                                            }
-                                           
                                         .)
                                                  
-";".
+";"										(.objCode.setDataSize(ts.escopoAtual.nVars);.)
+.
 
 
 tipo<out NTipo ntipo>                   (. boolean vet = false; 
@@ -145,14 +152,14 @@ tipo<out NTipo ntipo>                   (. boolean vet = false;
                                         .)
 =                                       
 "inteiro"                               (. tip = t.val; .)
-["[" "]"                                (. vet = true; .)
+[ "[" "]"                                (. vet = true; .)
 ]                                       (. ntipo = new NTipo(tip, vet); .)
 .      
 
 declaracao_const                        (. 
                                            Obj obj;
                                         .)   
-= "constante" 
+= "constante"							(. debug("const"); .) 
         id                              (. obj = ts.buscar("inteiro");
                                            obj = ts.inserir(Obj.Const, t.val, obj.tipo); 
                                         .) 
@@ -162,9 +169,53 @@ declaracao_const                        (.
         .
 
 // Funcoes e parametros
-parametros = (. NTipo ntipo; .) 
-id ":" tipo<out ntipo> {"," id ":" tipo<out ntipo>}.
-parametros_passados = "(" [expressao {"," expressao}] ")".
+parametros  (. NTipo ntipo; .) 
+	=
+id ":" 
+	tipo<out ntipo> 
+	{"," 
+		id 
+			":"
+		tipo<out ntipo>
+	}.
+parametros_passados<Operand op>			(. Operand passados; .)
+= "(" 
+										(. if(op.cat != Operand.Func){
+												erro("nao eh uma funcao ");
+												op.obj = ts.semObj;
+											}
+											int preais = 0;
+											int pdecl = op.obj.nPars;
+											Obj fp = op.obj.locais;
+										.)
+	[expressao<out passados>			(. objCode.load(passados);
+											preais++;
+											if( fp != null){
+												if(!passados.tipo.assinalavelPara(fp.tipo))
+													erro("Tipo de paramentro incompativel");
+												fp = fp.prox;
+											}
+										.)
+	
+	{"," expressao<out passados>		(.objCode.load(passados);
+										  preais++;
+										  if (fp != null){
+											if(!passados.tipo.assinalavelPara(fp.tipo))
+												erro("Tipo de paramentro incompativel");
+											}											
+										.)
+										  
+	 } ]								(.if (preais > pdecl)
+											erro("quantidade de paramentros passados maior do que os declarados");
+										  else if(preais < pdecl)
+											erro("quantidade de paramentros passados menor do que os declarados");
+										.)
+	 
+	 ")"
+	 
+	 .
+
+
 
 bloco_procedimento                      (. NTipo ntipo; 
                                            String nome;
@@ -182,86 +233,122 @@ id                                      (. nome = t.val;
 ")" 
 [":" tipo<out ntipo>                   
 ] 
-"inicio"
- instrucoes 
-"fim"                                   (. ofuncAtual.locais = ts.escopoAtual.locais;
+"inicio"							 (. ofuncAtual.end = objCode.getPC();
+                                   objCode.put(objCode.enter);
+									objCode.put(ofuncAtual.nPars);
+                                   int pcvars = objCode.getPC();
+                                   objCode.put(0);
+                                .)
+
+                                  
+ instrucoes						 (. objCode.put(pcvars, ts.escopoAtual.nVars);
+                                   if (ofuncAtual.tipo == ts.semTipo) {
+                                        objCode.put(objCode.exit);
+                                        objCode.put(objCode.return_);
+                                   } else {
+                                        // fim da funcao alcancado
+                                        // sem instrucao return
+                                        objCode.put(objCode.trap);
+                                        objCode.put(1);
+                                   }						
+								.)
+"fim"   (. debug("fim"); .)                                (. ofuncAtual.locais = ts.escopoAtual.locais;
                                            ts.fecharEscopo();
                                         .)
 .
 
-retorno = "retorne" [expressao] ";". 
+retorno = "retorne" [
+		
+		expressao<out op>
+		
+		] ";". 
 
 
 bloco_principal                         (. ofuncAtual = ts.inserir(Obj.Func,
                                            "main", getTipo("void", false));
                                            ts.abrirEscopo("Func main");
+										   objCode = new Code();
+										   objCode.setMainPC();
                                         .)
 
-= "inicio" 
-  instrucoes 
+= "inicio"						 (. ofuncAtual.end = objCode.getPC();
+                                   objCode.put(objCode.enter);
+                                   objCode.put(ofuncAtual.nPars);
+                                   int pcvars = objCode.getPC();
+                                   objCode.put(0);
+                                .)
+  instrucoes					(. objCode.put(pcvars, ts.escopoAtual.nVars);.)
   "fim"                                 (. ofuncAtual.locais = ts.escopoAtual.locais;
                                            ts.fecharEscopo();
+										   objCode.put(objCode.exit);
+										   objCode.put(objCode.return_);
                                         .)
   .
 
-/* 
- * Existe um grande problema em relacao ao reconhecimento de designadores e
- * chamada de funcoes (ambas as regras comecam com o token "id". A maneira a qual a
- * ambiguidade foi solucionada consiste na seguinte producao utilizada na regra "comando"
- * : designador (assinalamento | parametros_passados) 
- * Incoerencias como "funcao[]();" serao tratados semanticamente
+comando									(. Operand op = null; .)
+	= 
 
-*/
+	(
+		declaracao_var (. debug("var");.)
 
-//O designador indica uma variavel ou um vetor
+		| 
+		repeticao_def (. debug("rep");.)
 
-designador =							(. String nome; int valor;.) 
-	id									(. nome = t.val;
-										   op  = new Operand(ts.busca(nome));
-	
-	.)
-											
-[										
-	"["									(. if(op.tipo).)
-		expressao						(. valor = Interger.parserInt(t.val).)
-										(. .)
-	"]"					
-] .										
+		| 
+		condicional_def (. debug("cond");.)
 
-comando = (declaracao_var | repeticao_def | condicional_def | io_def | 
-designador (assinalamento | parametros_passados) ";" | retorno).
+		| 
+		io_def (. debug("io");.)
+
+		| 
+		designador<out op> (. debug("desig");.)
+
+						(
+						assinalamento<op> (. debug("assina");.)
+
+						| 
+
+						parametros_passados<op> (. debug("param");.)
+
+						) 
+					";" | 
+					retorno
+					).
 
 
 // Definicao de instrucoes e suas respectivas estruturas
 
-instrucoes								(. Operand op = null; .)
+instrucoes								
 	= 
 	{
-	comando
+	comando								(. debug("comando");.)
 	}.
 
 
-assinalamento = "=" expressao .
-aloc_vetor =  "novo"					(. op = null; List<Interger> lista = null; String tipo.)
-	"inteiro"							
-	(
-	"["
-		expressao<out op>				(. if( op.tipo != ts.tipoInt)
-												erro("A quantidade de elementos do vetor deve ser uma variavel de tipo inteira");
-										.) 
-	"]" | 
-	"{"
-		num								(. lista.add(toInteger(t.val); .)
-			{
-				"," 
-					num					(. lista.add(toInteger(t.val);) .)
-			} 
-	"}"									(. op = new Operand(lista.size()); .)
-	)									(. op.tipo = new Struct(Struct.vetor, obj.tipo); .)
+assinalamento<Operand op1>								(. Operand op2 = null; .)	
+	=	"="	
+			expressao<out op2>								(. if(op2.tipo.assinalavelPara(op1.tipo))
+																	   objCode.assign(op1, op2);
+															   else
+																   erro("tipos incompativeis");
+															.)
+																	
+																	
 	.
-
 repeticao_def = para_def | enquanto_def | repita_def.
-para_def = "para" id "=" expressao "ate" expressao ["passo" expressao] "faca" instrucoes "fimpara"
+para_def = 
+	"para"
+		id "=" 
+			expressao<out op> 
+			"ate" 
+			expressao<out op> 
+			[
+				"passo" 
+					expressao<out op>
+			] 
+			"faca" 
+				instrucoes 
+	"fimpara"
 [";"].
 
 enquanto_def = "enquanto" condicao "faca" instrucoes "fimenquanto" [";"].
@@ -274,39 +361,68 @@ repita_def = "repita" instrucoes "ate" condicao ";".
 condicional_def = se_def | caso_def.
 
 se_def = "se" condicao "entao" instrucoes ["senao" instrucoes] "fimse" [";"]. 
-caso_def = "caso" designador caso_seja_def {caso_seja_def} "outrocaso" ":" instrucoes "fimcaso".
-caso_seja_def = "seja" expressao "faca" instrucoes.
-condicao = expressao operador_relacional expressao.
+caso_def = "caso" designador<out op> caso_seja_def {caso_seja_def} "outrocaso" ":" instrucoes "fimcaso".
+caso_seja_def 
+	= 
+		"seja" 
+				expressao<out op> 
+		"faca" 
+				instrucoes.
+
+condicao 
+	= 
+		expressao<out op> 
+		
+		operador_relacional 
+		
+		expressao<out op>.
 
 
 // Funcoes de entrada e saida
 io_def = escreva_def | leia_def.
 
 // -- leia(n); -> se n for invalido, entao retorna 0.
-leia_def = "leia" "(" designador ")" ";".
-escreva_def = "escreva" "(" (strConst | designador [parametros_passados]) 
-{"," (strConst | designador [parametros_passados])} ")" ";".
+leia_def = "leia"	(. debug("leia");.)
+ "(" designador<out op> ")" ";".
+escreva_def = "escreva"  (.debug("escreva");.)
+			"(" (strConst | 
+				designador<out op> 
+				[
+					parametros_passados<op>
+				]
+				) 
 
+			{"," 
+				(strConst | 
+				designador<out op> 
+				[
+					parametros_passados<op>
+				]
+				)
+			} 
+			")" ";".
 // Tratamento de expressoes
 
-expressao<out Operand op>			(. Operand op2; op = null.)
+
+expressao<out Operand op>			(. Operand op2; op = null; .)
 
 	= 	termo<out op>				(. if(op.tipo != ts.tipoInt)
-											erro("Operando de tipo nao-inteiro")
+											erro("Operando de tipo nao-inteiro");
 									.)
 	{
 		(
 			"+" |
 			"-"
 		) 
-			termo					(. if(op.tipo != ts.tipoInt || op.tipo != ts.tipoInt)
-											erro("Operando de tipo nao-inteiro")
+			termo<out op2>					(. if(op.tipo != ts.tipoInt || op2.tipo != ts.tipoInt)
+											erro("Operando de tipo nao-inteiro");
 									.)
 
 	}.
-termo<out Operand op>				(. Operand op2; op = null.)
+
+termo<out Operand op>				(. Operand op2; op = null;.)
 	= 
-		fator<out op>
+		fator<out op>				
 		{
 			(
 				"*" | 
@@ -315,27 +431,91 @@ termo<out Operand op>				(. Operand op2; op = null.)
 			) 
 			
 			fator<out op2>			(. if(op.tipo != ts.tipoInt || op.tipo != ts.tipoInt)
-											erro("Operando de tipo nao-inteiro")
+											erro("Operando de tipo nao-inteiro");
 									.)
 
 		}.
 
-fator<out Operand op>				(.op=null; List<Interger> lista = null;.) 
+
+fator<out Operand op>				(.op=null; .) 
 
 	= 
-		num							(.op = new Operand(toInteger(t.val)).) 
-		| designador				//<out alguma coisa> ainda nao implementado.
+		num								(.op = new Operand(toInteger(t.val)); .) 
+		| designador<out op>			(. System.out.println("aqui!");	.)	
 		[
-			parametros_passados
+			parametros_passados<op>		(.
+			
+										   if (op.tipo == ts.semTipo)
+											   erro("função de tipo void usada em expressão");
+										   if (op.obj == ts.objTamVetor)
+											   objCode.put(objCode.arraylength);
+										   else {
+											   objCode.put(objCode.call);
+											   objCode.put2(op.end);
+										   }
+										   op.cat = Operand.Stack;
+										
+										.)
 		] | 
 					
-		"(" 
-		
-			expressao<out op>		
+		"(" expressao<out op> ")" | 		
+		aloc_vetor<out op>.				
 
-		")" | 
-		
-		aloc_vetor<out op>.				(..)
+aloc_vetor<out Operand op> =  
+	"novo"					(. op = null; List<Integer> lista = null; NTipo ntipo; .)
+	tipo<out ntipo>						(. Obj obj = ts.buscar(ntipo.getTipo()); .)
+	(
+	"["
+		expressao<out op>				(. if( op.tipo != ts.tipoInt)
+												erro("A quantidade de elementos do vetor deve ser uma variavel de tipo inteira");
+										.) 
+	"]" | 
+	"{"
+		num								(. lista.add(toInteger(t.val)); .)
+			{
+				"," 
+					num					(. lista.add(toInteger(t.val)); .)
+			} 
+	"}"									(. op = new Operand(lista.size()); .)
+	)									(. op.tipo = new Struct(Struct.Vetor, obj.tipo); .)
+	.
+
+
+
+/* 
+ * Existe um grande problema em relacao ao reconhecimento de designadores e
+ * chamada de funcoes (ambas as regras comecam com o token "id". A maneira a qual a
+ * ambiguidade foi solucionada consiste na seguinte producao utilizada na regra "comando"
+ * : designador (assinalamento | parametros_passados) 
+
+ * Incoerencias como "funcao[]();" serao tratados semanticamente
+
+*/
+
+//O designador indica uma variavel ou um vetor
+
+designador<out Operand op> =							(.String nome; Operand indice = null; .) 
+	id													(. nome = t.val;
+														   op  = new Operand(ts.buscar(nome));
+	
+														.)
+											
+[										
+	"[" 
+		expressao<out indice>								(. if(indice.tipo.cat == Struct.Vetor){
+																if(indice.tipo.cat != Struct.Int)
+																	erro("O indice deve ser um valor inteiro");
+															}else{
+
+																erro("A variavel "+ nome + " nao eh um vetor");
+
+															}
+	
+	
+														.)
+	"]"					
+] .										
+
 
 END MicroPortugol.
 

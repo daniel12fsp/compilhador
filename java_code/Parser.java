@@ -1,12 +1,48 @@
 
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+
+class NDesig {
+        String nome;
+        boolean vec;
+        public NDesig(String n, boolean v) {
+                nome = n;
+                vec = v;
+        }
+        public String getNome() {
+                return nome;
+        }
+        public boolean vetor() {
+                return vec;
+        }
+}
+
+class NTipo {
+        String tipo;
+        boolean vec;
+        public NTipo(String t, boolean v) {
+                tipo = t;
+                vec = v;
+        }
+        public String getTipo() {
+                return tipo;
+        }
+        public boolean vetor() {
+                return vec;
+        }
+}
+
+
+
 public class Parser {
 	public static final int _EOF = 0;
 	public static final int _id = 1;
 	public static final int _strConst = 2;
 	public static final int _num = 3;
-	public static final int maxT = 49;
-	public static final int _option = 50;
+	public static final int maxT = 52;
+	public static final int _option = 53;
 
 	static final boolean T = true;
 	static final boolean x = false;
@@ -21,9 +57,10 @@ public class Parser {
 
 	private Tab ts;
 	private Obj ofuncAtual;
+	private Operand op;
 
 	private Code objCode;
-
+	
 	private Struct getTipo(String tipo, boolean vec) { 
 		Obj o = ts.buscar(tipo);
 		Struct st = o.tipo;
@@ -33,6 +70,14 @@ public class Parser {
 
 	public void erro(String msg) {
 		errors.SemErr(t.line, t.col, msg);
+	}
+
+	public int toInteger(String str){
+		return Integer.parseInt(str);
+	}
+
+	public void debug(String str){
+		System.out.println(str);
 	}
 
 
@@ -61,7 +106,7 @@ public class Parser {
 				break;
 			}
 
-			if (la.kind == 50) {
+			if (la.kind == 53) {
 				ts.dump(); 
 			}
 			la = t;
@@ -99,335 +144,579 @@ public class Parser {
 	}
 	
 	void MicroPortugol() {
+		ofuncAtual = null; 
+		                             ts = new Tab(this);
+		                             ts.abrirEscopo("Global");
+		                          
 		Expect(4);
 		Expect(1);
-		Linhas();
+		while (la.kind == 5 || la.kind == 12 || la.kind == 16) {
+			if (la.kind == 5) {
+				declaracao_var();
+			} else if (la.kind == 12) {
+				declaracao_const();
+			} else {
+				bloco_procedimento();
+			}
+		}
+		bloco_principal();
+		ts.fecharEscopo(); 
 	}
 
-	void Linhas() {
-		Comando();
-		while (StartOf(1)) {
-			Comando();
+	void declaracao_var() {
+		ArrayList<String> nomeVariaveis 
+		    = new ArrayList();
+		NTipo ntipo;
+		
+		Expect(5);
+		Expect(1);
+		nomeVariaveis.add(t.val); 
+		debug("aqui1"); 
+		while (la.kind == 6) {
+			Get();
+			Expect(1);
+			nomeVariaveis.add(t.val); 
+			debug("aqui2"); 
+		}
+		Expect(7);
+		ntipo = tipo();
+		Struct st = getTipo(ntipo.getTipo(),
+		    ntipo.vetor());
+		debug(ntipo.getTipo());
+		if (st == ts.semTipo)
+		    erro("A variÃ¡vel nÃ£o pode ter tipo desconhecido");
+		     
+		Iterator iter = nomeVariaveis.iterator();
+		debug("npars++");
+		//ofuncAtual.nPars  = nomeVariaveis.size();
+		while (iter.hasNext()) {
+		    ts.inserir(Obj.Var, iter.next().toString(), st);
+		}
+		
+		Expect(8);
+		objCode.setDataSize(ts.escopoAtual.nVars);
+	}
+
+	void declaracao_const() {
+		Obj obj;
+		
+		Expect(12);
+		debug("const"); 
+		Expect(1);
+		obj = ts.buscar("inteiro");
+		obj = ts.inserir(Obj.Const, t.val, obj.tipo); 
+		
+		Expect(13);
+		Expect(3);
+		obj.val = toInteger(t.val); 
+		Expect(8);
+	}
+
+	void bloco_procedimento() {
+		NTipo ntipo; 
+		String nome;
+		boolean tipoInformado = false;
+		
+		Expect(16);
+		Expect(1);
+		nome = t.val; 
+		ofuncAtual = ts.inserir(Obj.Func,
+		nome,
+		getTipo("void", false));
+		ts.abrirEscopo("Func " + nome); 
+		
+		Expect(14);
+		if (la.kind == 1) {
+			parametros();
+		}
+		Expect(15);
+		if (la.kind == 7) {
+			Get();
+			ntipo = tipo();
+		}
+		Expect(17);
+		ofuncAtual.end = objCode.getPC();
+		               objCode.put(objCode.enter);
+		objCode.put(ofuncAtual.nPars);
+		               int pcvars = objCode.getPC();
+		               objCode.put(0);
+		            
+		instrucoes();
+		objCode.put(pcvars, ts.escopoAtual.nVars);
+		             if (ofuncAtual.tipo == ts.semTipo) {
+		                  objCode.put(objCode.exit);
+		                  objCode.put(objCode.return_);
+		             } else {
+		                  // fim da funcao alcancado
+		                  // sem instrucao return
+		                  objCode.put(objCode.trap);
+		                  objCode.put(1);
+		             }						
+		
+		Expect(18);
+		debug("fim"); 
+		ofuncAtual.locais = ts.escopoAtual.locais;
+		ts.fecharEscopo();
+		
+	}
+
+	void bloco_principal() {
+		ofuncAtual = ts.inserir(Obj.Func,
+		"main", getTipo("void", false));
+		ts.abrirEscopo("Func main");
+		objCode = new Code();
+		objCode.setMainPC();
+		
+		Expect(17);
+		ofuncAtual.end = objCode.getPC();
+		              objCode.put(objCode.enter);
+		              objCode.put(ofuncAtual.nPars);
+		              int pcvars = objCode.getPC();
+		              objCode.put(0);
+		           
+		instrucoes();
+		objCode.put(pcvars, ts.escopoAtual.nVars);
+		Expect(18);
+		ofuncAtual.locais = ts.escopoAtual.locais;
+		ts.fecharEscopo();
+		objCode.put(objCode.exit);
+		objCode.put(objCode.return_);
+		
+	}
+
+	NTipo  tipo() {
+		NTipo  ntipo;
+		boolean vet = false; 
+		String tip;
+		
+		Expect(9);
+		tip = t.val; 
+		if (la.kind == 10) {
+			Get();
+			Expect(11);
+			vet = true; 
+		}
+		ntipo = new NTipo(tip, vet); 
+		return ntipo;
+	}
+
+	void parametros() {
+		NTipo ntipo; 
+		Expect(1);
+		Expect(7);
+		ntipo = tipo();
+		while (la.kind == 6) {
+			Get();
+			Expect(1);
+			Expect(7);
+			ntipo = tipo();
 		}
 	}
 
-	void Comando() {
+	void parametros_passados(Operand op) {
+		Operand passados; 
+		Expect(14);
+		if(op.cat != Operand.Func){
+		erro("nao eh uma funcao ");
+		op.obj = ts.semObj;
+		}
+		int preais = 0;
+		int pdecl = op.obj.nPars;
+		Obj fp = op.obj.locais;
+		
+		if (StartOf(1)) {
+			passados = expressao();
+			objCode.load(passados);
+			preais++;
+			if( fp != null){
+			if(!passados.tipo.assinalavelPara(fp.tipo))
+			erro("Tipo de paramentro incompativel");
+			fp = fp.prox;
+			}
+			
+			while (la.kind == 6) {
+				Get();
+				passados = expressao();
+				objCode.load(passados);
+				preais++;
+				if (fp != null){
+				if(!passados.tipo.assinalavelPara(fp.tipo))
+				erro("Tipo de paramentro incompativel");
+				}											
+				
+			}
+		}
+		if (preais > pdecl)
+		erro("quantidade de paramentros passados maior do que os declarados");
+		else if(preais < pdecl)
+		erro("quantidade de paramentros passados menor do que os declarados");
+		
+		Expect(15);
+	}
+
+	Operand  expressao() {
+		Operand  op;
+		Operand op2; op = null; 
+		op = termo();
+		if(op.tipo != ts.tipoInt)
+		erro("Operando de tipo nao-inteiro");
+		
+		while (la.kind == 44 || la.kind == 45) {
+			if (la.kind == 44) {
+				Get();
+			} else {
+				Get();
+			}
+			op2 = termo();
+			if(op.tipo != ts.tipoInt || op2.tipo != ts.tipoInt)
+			erro("Operando de tipo nao-inteiro");
+			
+		}
+		return op;
+	}
+
+	void instrucoes() {
+		while (StartOf(2)) {
+			comando();
+			debug("comando");
+		}
+	}
+
+	void retorno() {
+		Expect(19);
+		if (StartOf(1)) {
+			op = expressao();
+		}
+		Expect(8);
+	}
+
+	void comando() {
+		Operand op = null; 
 		switch (la.kind) {
 		case 5: {
-			Bloco_def();
+			declaracao_var();
+			debug("var");
 			break;
 		}
-		case 7: {
-			Procedimento_def();
+		case 20: case 25: case 33: {
+			repeticao_def();
+			debug("rep");
 			break;
 		}
-		case 13: {
-			Variavel_def();
+		case 34: case 38: {
+			condicional_def();
+			debug("cond");
 			break;
 		}
-		case 16: case 21: case 23: {
-			Repeticao_def();
-			break;
-		}
-		case 29: {
-			Se_def();
-			break;
-		}
-		case 33: {
-			Caso_def();
-			break;
-		}
-		case 37: {
-			Escreva_def();
-			break;
-		}
-		case 38: {
-			Leia_def();
-			break;
-		}
-		case 39: {
-			Constante_def();
+		case 42: case 43: {
+			io_def();
+			debug("io");
 			break;
 		}
 		case 1: {
-			Designador();
+			op = designador();
+			debug("desig");
+			if (la.kind == 13) {
+				assinalamento(op);
+				debug("assina");
+			} else if (la.kind == 14) {
+				parametros_passados(op);
+				debug("param");
+			} else SynErr(53);
+			Expect(8);
 			break;
 		}
-		default: SynErr(50); break;
+		case 19: {
+			retorno();
+			break;
+		}
+		default: SynErr(54); break;
 		}
 	}
 
-	void Bloco_def() {
-		Expect(5);
-		Linhas();
-		Expect(6);
-	}
-
-	void Procedimento_def() {
-		Expect(7);
-		Expect(1);
-		Expect(8);
-		if (la.kind == 1) {
-			Get();
-			Tipo();
-			while (la.kind == 9) {
-				Get();
-				Expect(1);
-				Tipo();
-			}
-		}
-		Expect(10);
-		if (la.kind == 14) {
-			Tipo();
-		}
-		Expect(5);
-		Linhas();
-		if (la.kind == 11) {
-			Get();
-			Exp();
-			Expect(12);
-		}
-		Expect(6);
-	}
-
-	void Variavel_def() {
-		Expect(13);
-		Expect(1);
-		while (la.kind == 9) {
-			Get();
-			Expect(1);
-		}
-		Tipo();
-		Expect(12);
-	}
-
-	void Repeticao_def() {
-		if (la.kind == 16) {
-			Para_def();
-		} else if (la.kind == 21) {
-			Enquanto_def();
-		} else if (la.kind == 23) {
-			Repita_def();
-		} else SynErr(51);
-	}
-
-	void Se_def() {
-		Expect(29);
-		Condicao_def();
-		Expect(30);
-		Linhas();
-		if (la.kind == 31) {
-			Get();
-			Linhas();
-		}
-		Expect(32);
-	}
-
-	void Caso_def() {
-		Expect(33);
-		Valor();
-		Caso_seja_def();
-		while (la.kind == 36) {
-			Caso_seja_def();
-		}
-		Expect(34);
-		Linhas();
-		Expect(35);
-	}
-
-	void Escreva_def() {
-		Expect(37);
-		Expect(8);
-		Expect(2);
-		while (la.kind == 9) {
-			Get();
-			Expect(2);
-		}
-		Expect(10);
-		Expect(12);
-	}
-
-	void Leia_def() {
-		Expect(38);
-		Expect(8);
-		Expect(2);
-		while (la.kind == 9) {
-			Get();
-			Expect(2);
-		}
-		Expect(10);
-		Expect(12);
-	}
-
-	void Constante_def() {
-		Expect(39);
-		Expect(1);
-		Expect(17);
-		Valor();
-		Expect(12);
-	}
-
-	void Designador() {
-		Expect(1);
-		if (la.kind == 8 || la.kind == 17 || la.kind == 25) {
-			X();
-		}
-	}
-
-	void Tipo() {
-		Expect(14);
-		Expect(15);
-	}
-
-	void Exp() {
-		Termo();
-		while (la.kind == 1 || la.kind == 3) {
-			Termo();
-		}
-	}
-
-	void Para_def() {
-		Expect(16);
-		Expect(1);
-		Expect(17);
-		Exp();
-		Expect(18);
-		Exp();
-		Expect(19);
-		Linhas();
-		Expect(20);
-	}
-
-	void Enquanto_def() {
-		Expect(21);
-		Condicao_def();
-		Expect(19);
-		Linhas();
-		Expect(22);
-	}
-
-	void Repita_def() {
-		Expect(23);
-		Linhas();
-		Expect(18);
-		Condicao_def();
-		Expect(12);
-	}
-
-	void Condicao_def() {
-		Exp();
-		Op_relacional();
-		Exp();
-	}
-
-	void Novo_def() {
-		Expect(24);
-		Expect(15);
-		if (la.kind == 25) {
-			Get();
-			Exp();
-			Expect(26);
-		} else if (la.kind == 27) {
-			Get();
-			Exp();
-			while (la.kind == 9) {
-				Get();
-				Exp();
-			}
-			Expect(28);
-		} else SynErr(52);
-	}
-
-	void Valor() {
-		if (la.kind == 3) {
-			Get();
-		} else if (la.kind == 1) {
-			Designador();
-		} else SynErr(53);
-	}
-
-	void Caso_seja_def() {
-		Expect(36);
-		Expect(3);
-		Expect(19);
-		Linhas();
-	}
-
-	void Op_relacional() {
-		if (la.kind == 40) {
-			Get();
-		} else if (la.kind == 41) {
-			Get();
-		} else if (la.kind == 42) {
-			Get();
-		} else if (la.kind == 43) {
-			Get();
-		} else if (la.kind == 44) {
-			Get();
-		} else SynErr(54);
-	}
-
-	void Fator() {
-		Valor();
-		if (la.kind == 45 || la.kind == 46) {
-			if (la.kind == 45) {
-				Get();
-			} else {
-				Get();
-			}
-			Valor();
-		}
-	}
-
-	void Termo() {
-		Fator();
-		if (la.kind == 47 || la.kind == 48) {
-			if (la.kind == 47) {
-				Get();
-			} else {
-				Get();
-			}
-			Fator();
-		}
-	}
-
-	void X() {
-		if (la.kind == 25) {
-			Vetor_def();
-		} else if (la.kind == 8) {
-			Chamada_parametros();
-		} else if (la.kind == 17) {
-			Assinalamento_def();
+	void repeticao_def() {
+		if (la.kind == 20) {
+			para_def();
+		} else if (la.kind == 25) {
+			enquanto_def();
+		} else if (la.kind == 33) {
+			repita_def();
 		} else SynErr(55);
 	}
 
-	void Vetor_def() {
-		Expect(25);
-		if (la.kind == 1 || la.kind == 3) {
-			Exp();
-		}
-		Expect(26);
-	}
-
-	void Chamada_parametros() {
-		Expect(8);
-		Exp();
-		while (la.kind == 9) {
-			Get();
-			Exp();
-		}
-		Expect(10);
-		Expect(12);
-	}
-
-	void Assinalamento_def() {
-		Expect(17);
-		if (la.kind == 1) {
-			Designador();
-		} else if (la.kind == 24) {
-			Novo_def();
+	void condicional_def() {
+		if (la.kind == 34) {
+			se_def();
+		} else if (la.kind == 38) {
+			caso_def();
 		} else SynErr(56);
-		Expect(12);
+	}
+
+	void io_def() {
+		if (la.kind == 43) {
+			escreva_def();
+		} else if (la.kind == 42) {
+			leia_def();
+		} else SynErr(57);
+	}
+
+	Operand  designador() {
+		Operand  op;
+		String nome; Operand indice = null; 
+		Expect(1);
+		nome = t.val;
+		op  = new Operand(ts.buscar(nome));
+		
+		if (la.kind == 10) {
+			Get();
+			indice = expressao();
+			if(indice.tipo.cat == Struct.Vetor){
+			if(indice.tipo.cat != Struct.Int)
+			erro("O indice deve ser um valor inteiro");
+			}else{
+			erro("A variavel "+ nome + " nao eh um vetor");
+			}
+			
+			Expect(11);
+		}
+		return op;
+	}
+
+	void assinalamento(Operand op1) {
+		Operand op2 = null; 
+		Expect(13);
+		op2 = expressao();
+		if(op2.tipo.assinalavelPara(op1.tipo))
+		objCode.assign(op1, op2);
+		else
+		erro("tipos incompativeis");
+		
+	}
+
+	void para_def() {
+		Expect(20);
+		Expect(1);
+		Expect(13);
+		op = expressao();
+		Expect(21);
+		op = expressao();
+		if (la.kind == 22) {
+			Get();
+			op = expressao();
+		}
+		Expect(23);
+		instrucoes();
+		Expect(24);
+		if (la.kind == 8) {
+			Get();
+		}
+	}
+
+	void enquanto_def() {
+		Expect(25);
+		condicao();
+		Expect(23);
+		instrucoes();
+		Expect(26);
+		if (la.kind == 8) {
+			Get();
+		}
+	}
+
+	void repita_def() {
+		Expect(33);
+		instrucoes();
+		Expect(21);
+		condicao();
+		Expect(8);
+	}
+
+	void condicao() {
+		op = expressao();
+		operador_relacional();
+		op = expressao();
+	}
+
+	void operador_relacional() {
+		switch (la.kind) {
+		case 27: {
+			Get();
+			break;
+		}
+		case 28: {
+			Get();
+			break;
+		}
+		case 29: {
+			Get();
+			break;
+		}
+		case 30: {
+			Get();
+			break;
+		}
+		case 31: {
+			Get();
+			break;
+		}
+		case 32: {
+			Get();
+			break;
+		}
+		default: SynErr(58); break;
+		}
+	}
+
+	void se_def() {
+		Expect(34);
+		condicao();
+		Expect(35);
+		instrucoes();
+		if (la.kind == 36) {
+			Get();
+			instrucoes();
+		}
+		Expect(37);
+		if (la.kind == 8) {
+			Get();
+		}
+	}
+
+	void caso_def() {
+		Expect(38);
+		op = designador();
+		caso_seja_def();
+		while (la.kind == 41) {
+			caso_seja_def();
+		}
+		Expect(39);
+		Expect(7);
+		instrucoes();
+		Expect(40);
+	}
+
+	void caso_seja_def() {
+		Expect(41);
+		op = expressao();
+		Expect(23);
+		instrucoes();
+	}
+
+	void escreva_def() {
+		Expect(43);
+		debug("escreva");
+		Expect(14);
+		if (la.kind == 2) {
+			Get();
+		} else if (la.kind == 1) {
+			op = designador();
+			if (la.kind == 14) {
+				parametros_passados(op);
+			}
+		} else SynErr(59);
+		while (la.kind == 6) {
+			Get();
+			if (la.kind == 2) {
+				Get();
+			} else if (la.kind == 1) {
+				op = designador();
+				if (la.kind == 14) {
+					parametros_passados(op);
+				}
+			} else SynErr(60);
+		}
+		Expect(15);
+		Expect(8);
+	}
+
+	void leia_def() {
+		Expect(42);
+		debug("leia");
+		Expect(14);
+		op = designador();
+		Expect(15);
+		Expect(8);
+	}
+
+	Operand  termo() {
+		Operand  op;
+		Operand op2; op = null;
+		op = fator();
+		while (la.kind == 46 || la.kind == 47 || la.kind == 48) {
+			if (la.kind == 46) {
+				Get();
+			} else if (la.kind == 47) {
+				Get();
+			} else {
+				Get();
+			}
+			op2 = fator();
+			if(op.tipo != ts.tipoInt || op.tipo != ts.tipoInt)
+			erro("Operando de tipo nao-inteiro");
+			
+		}
+		return op;
+	}
+
+	Operand  fator() {
+		Operand  op;
+		op=null; 
+		if (la.kind == 3) {
+			Get();
+			op = new Operand(toInteger(t.val)); 
+		} else if (la.kind == 1) {
+			op = designador();
+			System.out.println("aqui!");	
+			if (la.kind == 14) {
+				parametros_passados(op);
+				if (op.tipo == ts.semTipo)
+				erro("funÃ§Ã£o de tipo void usada em expressÃ£o");
+				if (op.obj == ts.objTamVetor)
+				objCode.put(objCode.arraylength);
+				else {
+				objCode.put(objCode.call);
+				objCode.put2(op.end);
+				}
+				op.cat = Operand.Stack;
+											
+			}
+		} else if (la.kind == 14) {
+			Get();
+			op = expressao();
+			Expect(15);
+		} else if (la.kind == 49) {
+			op = aloc_vetor();
+		} else SynErr(61);
+		return op;
+	}
+
+	Operand  aloc_vetor() {
+		Operand  op;
+		Expect(49);
+		op = null; List<Integer> lista = null; NTipo ntipo; 
+		ntipo = tipo();
+		Obj obj = ts.buscar(ntipo.getTipo()); 
+		if (la.kind == 10) {
+			Get();
+			op = expressao();
+			if( op.tipo != ts.tipoInt)
+			erro("A quantidade de elementos do vetor deve ser uma variavel de tipo inteira");
+			
+			Expect(11);
+		} else if (la.kind == 50) {
+			Get();
+			Expect(3);
+			lista.add(toInteger(t.val)); 
+			while (la.kind == 6) {
+				Get();
+				Expect(3);
+				lista.add(toInteger(t.val)); 
+			}
+			Expect(51);
+			op = new Operand(lista.size()); 
+		} else SynErr(62);
+		op.tipo = new Struct(Struct.Vetor, obj.tipo); 
+		return op;
 	}
 
 
@@ -442,8 +731,9 @@ public class Parser {
 	}
 
 	private static final boolean[][] set = {
-		{T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x},
-		{x,T,x,x, x,T,x,T, x,x,x,x, x,T,x,x, T,x,x,x, x,T,x,T, x,x,x,x, x,T,x,x, x,T,x,x, x,T,T,T, x,x,x,x, x,x,x,x, x,x,x}
+		{T,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x},
+		{x,T,x,T, x,x,x,x, x,x,x,x, x,x,T,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,x,x,x, x,T,x,x, x,x},
+		{x,T,x,x, x,T,x,x, x,x,x,x, x,x,x,x, x,x,x,T, T,x,x,x, x,T,x,x, x,x,x,x, x,T,T,x, x,x,T,x, x,x,T,T, x,x,x,x, x,x,x,x, x,x}
 
 	};
 } // end Parser
@@ -473,58 +763,64 @@ class Errors {
 			case 2: s = "strConst expected"; break;
 			case 3: s = "num expected"; break;
 			case 4: s = "\"algoritmo\" expected"; break;
-			case 5: s = "\"inicio\" expected"; break;
-			case 6: s = "\"fim\" expected"; break;
-			case 7: s = "\"procedimento\" expected"; break;
-			case 8: s = "\"(\" expected"; break;
-			case 9: s = "\",\" expected"; break;
-			case 10: s = "\")\" expected"; break;
-			case 11: s = "\"retorne\" expected"; break;
-			case 12: s = "\";\" expected"; break;
-			case 13: s = "\"variavel\" expected"; break;
-			case 14: s = "\":\" expected"; break;
-			case 15: s = "\"inteiro\" expected"; break;
-			case 16: s = "\"para\" expected"; break;
-			case 17: s = "\"=\" expected"; break;
-			case 18: s = "\"ate\" expected"; break;
-			case 19: s = "\"faca\" expected"; break;
-			case 20: s = "\"fimpara\" expected"; break;
-			case 21: s = "\"enquanto\" expected"; break;
-			case 22: s = "\"fimenquanto\" expected"; break;
-			case 23: s = "\"repita\" expected"; break;
-			case 24: s = "\"novo\" expected"; break;
-			case 25: s = "\"[\" expected"; break;
-			case 26: s = "\"]\" expected"; break;
-			case 27: s = "\"{\" expected"; break;
-			case 28: s = "\"}\" expected"; break;
-			case 29: s = "\"se\" expected"; break;
-			case 30: s = "\"entao\" expected"; break;
-			case 31: s = "\"senao\" expected"; break;
-			case 32: s = "\"fimse\" expected"; break;
-			case 33: s = "\"caso\" expected"; break;
-			case 34: s = "\"outrocaso\" expected"; break;
-			case 35: s = "\"fimcaso\" expected"; break;
-			case 36: s = "\"seja\" expected"; break;
-			case 37: s = "\"escreva\" expected"; break;
-			case 38: s = "\"leia\" expected"; break;
-			case 39: s = "\"constante\" expected"; break;
-			case 40: s = "\"==\" expected"; break;
-			case 41: s = "\"!=\" expected"; break;
-			case 42: s = "\">\" expected"; break;
-			case 43: s = "\">=\" expected"; break;
-			case 44: s = "\"<\" expected"; break;
-			case 45: s = "\"*\" expected"; break;
-			case 46: s = "\"/\" expected"; break;
-			case 47: s = "\"+\" expected"; break;
-			case 48: s = "\"-\" expected"; break;
-			case 49: s = "??? expected"; break;
-			case 50: s = "invalid Comando"; break;
-			case 51: s = "invalid Repeticao_def"; break;
-			case 52: s = "invalid Novo_def"; break;
-			case 53: s = "invalid Valor"; break;
-			case 54: s = "invalid Op_relacional"; break;
-			case 55: s = "invalid X"; break;
-			case 56: s = "invalid Assinalamento_def"; break;
+			case 5: s = "\"variavel\" expected"; break;
+			case 6: s = "\",\" expected"; break;
+			case 7: s = "\":\" expected"; break;
+			case 8: s = "\";\" expected"; break;
+			case 9: s = "\"inteiro\" expected"; break;
+			case 10: s = "\"[\" expected"; break;
+			case 11: s = "\"]\" expected"; break;
+			case 12: s = "\"constante\" expected"; break;
+			case 13: s = "\"=\" expected"; break;
+			case 14: s = "\"(\" expected"; break;
+			case 15: s = "\")\" expected"; break;
+			case 16: s = "\"procedimento\" expected"; break;
+			case 17: s = "\"inicio\" expected"; break;
+			case 18: s = "\"fim\" expected"; break;
+			case 19: s = "\"retorne\" expected"; break;
+			case 20: s = "\"para\" expected"; break;
+			case 21: s = "\"ate\" expected"; break;
+			case 22: s = "\"passo\" expected"; break;
+			case 23: s = "\"faca\" expected"; break;
+			case 24: s = "\"fimpara\" expected"; break;
+			case 25: s = "\"enquanto\" expected"; break;
+			case 26: s = "\"fimenquanto\" expected"; break;
+			case 27: s = "\"!=\" expected"; break;
+			case 28: s = "\">\" expected"; break;
+			case 29: s = "\"<\" expected"; break;
+			case 30: s = "\">=\" expected"; break;
+			case 31: s = "\"<=\" expected"; break;
+			case 32: s = "\"==\" expected"; break;
+			case 33: s = "\"repita\" expected"; break;
+			case 34: s = "\"se\" expected"; break;
+			case 35: s = "\"entao\" expected"; break;
+			case 36: s = "\"senao\" expected"; break;
+			case 37: s = "\"fimse\" expected"; break;
+			case 38: s = "\"caso\" expected"; break;
+			case 39: s = "\"outrocaso\" expected"; break;
+			case 40: s = "\"fimcaso\" expected"; break;
+			case 41: s = "\"seja\" expected"; break;
+			case 42: s = "\"leia\" expected"; break;
+			case 43: s = "\"escreva\" expected"; break;
+			case 44: s = "\"+\" expected"; break;
+			case 45: s = "\"-\" expected"; break;
+			case 46: s = "\"*\" expected"; break;
+			case 47: s = "\"/\" expected"; break;
+			case 48: s = "\"%\" expected"; break;
+			case 49: s = "\"novo\" expected"; break;
+			case 50: s = "\"{\" expected"; break;
+			case 51: s = "\"}\" expected"; break;
+			case 52: s = "??? expected"; break;
+			case 53: s = "invalid comando"; break;
+			case 54: s = "invalid comando"; break;
+			case 55: s = "invalid repeticao_def"; break;
+			case 56: s = "invalid condicional_def"; break;
+			case 57: s = "invalid io_def"; break;
+			case 58: s = "invalid operador_relacional"; break;
+			case 59: s = "invalid escreva_def"; break;
+			case 60: s = "invalid escreva_def"; break;
+			case 61: s = "invalid fator"; break;
+			case 62: s = "invalid aloc_vetor"; break;
 			default: s = "error " + n; break;
 		}
 		printMsg(line, col, s);

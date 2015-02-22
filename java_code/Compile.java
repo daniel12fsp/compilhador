@@ -18,6 +18,7 @@ public class Compile
             p.Parse();
             if (p.errors.count == 0) {
                     try {
+			//Code.init();
                         Code.write(new FileOutputStream(output));
                     } catch (IOException e) {
                         System.out.println("-- impossivel abrir arquivo OBJ " + output);

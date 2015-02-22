@@ -81,6 +81,7 @@ public class Code {
 
     //--------------- code buffer access ----------------------
     public static void put(int x) {
+		
         if (pc >= bufSize) {
             if (pc == bufSize) {
                 System.out.println("programa com mais de " + bufSize + " bytes.");
@@ -88,7 +89,6 @@ public class Code {
             }
             pc++;
         } else {	
-	    System.out.printf(" "+ x);
             buf[pc++] = (byte) x;
         }
     }

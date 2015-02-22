@@ -127,7 +127,7 @@ public class Tab {
 		Obj p = escopoAtual.locais, ult = null;
 		while (p != null) {
 			if (p.nome.equals(nome)) 
-				parser.erro("\"" + nome + "\" já foi declarado!");
+			parser.erro("\"" + nome + "\" já foi declarado!");
 			ult = p; 
 			p = p.prox;
 		}
