@@ -404,34 +404,39 @@ escreva_def = "escreva"  (.debug("escreva");.)
 // Tratamento de expressoes
 
 
-expressao<out Operand op>			(. Operand op2; op = null; .)
+expressao<out Operand op>			(. Operand op2; int operador; op = null; .)
 
 	= 	termo<out op>				(. if(op.tipo != ts.tipoInt)
 											erro("Operando de tipo nao-inteiro");
 									.)
 	{
 		(
-			"+" |
-			"-"
-		) 
-			termo<out op2>					(. if(op.tipo != ts.tipoInt || op2.tipo != ts.tipoInt)
+			 "+"					(. operador = objCode.add; .)
+			|"-"					(. operador = objCode.sub; .)
+		)							(. objCode.load(op); .) 
+			termo<out op2>			(. objCode.load(op2); .)	
+									(. if(op.tipo != ts.tipoInt || op2.tipo != ts.tipoInt)
 											erro("Operando de tipo nao-inteiro");
+										objCode.put(operador);
 									.)
 
 	}.
 
-termo<out Operand op>				(. Operand op2; op = null;.)
+termo<out Operand op>				(. Operand op2; int operador; op = null;.)
 	= 
 		fator<out op>				
 		{
 			(
-				"*" | 
-				"/" | 
-				"%"
-			) 
-			
-			fator<out op2>			(. if(op.tipo != ts.tipoInt || op.tipo != ts.tipoInt)
+				 "*"				(. operador = objCode.mul; .)
+				|"/"				(. operador = objCode.div; .)
+				|"%"				(. operador = objCode.rem; .)
+			)						(. objCode.load(op); .) 
+									
+
+			fator<out op2>			(. objCode.load(op2); .)
+									(. if(op.tipo != ts.tipoInt || op2.tipo != ts.tipoInt)
 											erro("Operando de tipo nao-inteiro");
+										objCode.put(operador);
 									.)
 
 		}.
