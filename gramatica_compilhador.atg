@@ -169,15 +169,26 @@ declaracao_const                        (.
         .
 
 // Funcoes e parametros
-parametros  (. NTipo ntipo; .) 
+parametros                              (. NTipo ntipo; Struct st; .)  
 	=
-id ":" 
-	tipo<out ntipo> 
-	{"," 
-		id 
-			":"
-		tipo<out ntipo>
-	}.
+id                                      (. String nome = t.val; .) 
+":" 
+tipo<out ntipo>                         (. st = getTipo(ntipo.getTipo(),
+                                           ntipo.vetor());
+                                           ts.inserir(Obj.Var, nome, st); 
+                                           ofuncAtual.nPars++; 
+                                        .)  
+{"," 
+        id                              (. nome = t.val; .) 
+        ":"
+        tipo<out ntipo>                 (. st = getTipo(ntipo.getTipo(),
+                                           ntipo.vetor());
+                                           ts.inserir(Obj.Var, nome, st); 
+                                           ofuncAtual.nPars++; 
+                                        .)
+}.
+
+
 parametros_passados<Operand op>			(. Operand passados; .)
 = "(" 
 										(. if(op.cat != Operand.Func){
