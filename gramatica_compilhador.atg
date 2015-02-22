@@ -94,12 +94,15 @@ PRODUCTIONS
 
 MicroPortugol                           (. 
 										   ofuncAtual = null; 
+										   objCode = new Code();
                                            ts = new Tab(this);
-                                           ts.abrirEscopo("Global");
+                                           ts.abrirEscopo("Global"); 
                                         .) 
 
 
-= "algoritmo" id 
+= "algoritmo"							
+										   
+		id 
         {declaracao_var| 
          declaracao_const|
          bloco_procedimento				(.objCode.setDataSize(ts.escopoAtual.nVars);.)
@@ -169,7 +172,7 @@ declaracao_const                        (.
         .
 
 // Funcoes e parametros
-parametros                              (. NTipo ntipo; Struct st; .)  
+parametros                              (. debug("regra"); NTipo ntipo; Struct st; .)  
 	=
 id                                      (. String nome = t.val; .) 
 ":" 
@@ -228,28 +231,31 @@ parametros_passados<Operand op>			(. Operand passados; .)
 
 
 
-bloco_procedimento                      (. NTipo ntipo; 
+bloco_procedimento                      (. NTipo ntipo = new NTipo("void",false); 
                                            String nome;
                                            boolean tipoInformado = false;
+										   
                                         .)
 = "procedimento" 
-id                                      (. nome = t.val; 
-                                           ofuncAtual = ts.inserir(Obj.Func,
-                                           nome,
-                                           getTipo("void", false));
-                                           ts.abrirEscopo("Func " + nome); 
-                                        .) 
-"(" 
-[parametros] 
+id                                      (. nome = t.val;.) 
+"("										(. debug("("); .) 
+	[
+		parametros						(. debug("parametro"); .)
+	] 
 ")" 
-[":" tipo<out ntipo>                   
+[":" 
+	tipo<out ntipo>                   
 ] 
-"inicio"							 (. ofuncAtual.end = objCode.getPC();
-                                   objCode.put(objCode.enter);
-									objCode.put(ofuncAtual.nPars);
-                                   int pcvars = objCode.getPC();
-                                   objCode.put(0);
-                                .)
+"inicio"							(.	ts.abrirEscopo("Func " + nome);
+										ofuncAtual = ts.inserir(Obj.Func,
+											nome,
+											getTipo(ntipo.getTipo(), false));
+										ofuncAtual.end = objCode.getPC();
+										objCode.put(objCode.enter);
+										objCode.put(ofuncAtual.nPars);
+										int pcvars = objCode.getPC();
+										objCode.put(0);
+									 .)
 
                                   
  instrucoes						 (. objCode.put(pcvars, ts.escopoAtual.nVars);
@@ -263,9 +269,17 @@ id                                      (. nome = t.val;
                                         objCode.put(1);
                                    }						
 								.)
-"fim"   (. debug("fim"); .)                                (. ofuncAtual.locais = ts.escopoAtual.locais;
-                                           ts.fecharEscopo();
-                                        .)
+"fim"							(. objCode.put(pcvars, ts.escopoAtual.nVars);
+                                   if (ofuncAtual.tipo == ts.semTipo) {
+                                        objCode.put(objCode.exit);
+                                        objCode.put(objCode.return_);
+                                   } else {
+                                        objCode.put(objCode.trap);
+                                        objCode.put(1);
+                                   }
+                                   ofuncAtual.locais = ts.escopoAtual.locais;
+                                   ts.fecharEscopo();
+                                .)
 .
 
 retorno = "retorne" [
@@ -278,7 +292,6 @@ retorno = "retorne" [
 bloco_principal                         (. ofuncAtual = ts.inserir(Obj.Func,
                                            "main", getTipo("void", false));
                                            ts.abrirEscopo("Func main");
-										   objCode = new Code();
 										   objCode.setMainPC();
                                         .)
 
@@ -320,7 +333,12 @@ comando									(. Operand op = null; .)
 
 						| 
 
-						parametros_passados<op> (. debug("param");.)
+						parametros_passados<op> (. objCode.put(objCode.call);
+													objCode.put2(op.end);
+													if(op.tipo != ts.semTipo)
+														objCode.put(objCode.pop);
+													debug("param");
+												.)
 
 						) 
 					";" | 
