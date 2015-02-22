@@ -468,7 +468,7 @@ fator<out Operand op>				(.op=null; .)
 
 aloc_vetor<out Operand op> =  
 	"novo"					(. op = null; List<Integer> lista = null; NTipo ntipo; .)
-	tipo<out ntipo>						(. Obj obj = ts.buscar(ntipo.getTipo()); .)
+        "inteiro"						(. Obj obj = ts.buscar("inteiro"); .)
 	(
 	"["
 		expressao<out op>				(. if( op.tipo != ts.tipoInt)
