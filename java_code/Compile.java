@@ -16,6 +16,7 @@ public class Compile
             Scanner s = new Scanner(source);
             Parser p = new Parser(s);
             p.Parse();
+            System.out.println("Erros: " + p.errors.count);
             if (p.errors.count == 0) {
                     try {
                         Code.write(new FileOutputStream(output));
