@@ -1,0 +1,11 @@
+/*
+	comparacao de metodos de ordenacao, Marco, 2014
+*/
+
+
+algoritmo ComparacaoDeAlgoritmosOrdenacao
+
+inicio
+    variavel i,j : inteiro;
+    i = 1 + 2 ;
+fim
