@@ -94,7 +94,9 @@ MicroPortugol                           (. ofuncAtual = null;
         | declaracao_const 
         | bloco_procedimento
         } 
-        bloco_principal                (. ts.fecharEscopo(); .)
+        bloco_principal                (. objCode.setDataSize(ts.escopoAtual.nVars);
+                                           ts.fecharEscopo(); 
+                                        .)
         .
 
 /* 
@@ -161,8 +163,25 @@ declaracao_const                        (.
 designador = id ["[" expressao "]"] .
 
 // Funcoes e parametros
-parametros = (. NTipo ntipo; .) 
-id ":" tipo<out ntipo> {"," id ":" tipo<out ntipo>}.
+parametros =                            (. NTipo ntipo; Struct st; .) 
+id                                      (. String nome = t.val; .)    
+":" 
+tipo<out ntipo>                         (. st = getTipo(ntipo.getTipo(),
+                                           ntipo.vetor());
+                                           ts.inserir(Obj.Var, nome, st); 
+                                           ofuncAtual.nPars++; 
+                                        .) 
+{"," 
+id                                      (. nome = t.val; .) 
+":" 
+tipo<out ntipo>                         (. st = getTipo(ntipo.getTipo(),
+                                           ntipo.vetor());
+                                           ts.inserir(Obj.Var, nome, st); 
+                                           ofuncAtual.nPars++; 
+                                        .) 
+               
+}.
+
 parametros_passados = "(" [expressao {"," expressao}] ")".
 
 bloco_procedimento                      (. NTipo ntipo; 
@@ -178,7 +197,12 @@ id                                      (. nome = t.val;
                                         .) 
 "(" 
 [parametros] 
-")" 
+")"                                     (. ofuncAtual.end = objCode.getPC();
+                                           objCode.put(objCode.enter);
+                                           objCode.put(ofuncAtual.nPars);
+                                           int pcvars = objCode.getPC();
+                                           objCode.put(0);
+                                        .)
 [":" tipo<out ntipo>                   
 ] 
 "inicio"
@@ -196,7 +220,7 @@ bloco_principal                         (. ofuncAtual = ts.inserir(Obj.Func,
                                            ts.abrirEscopo("Func main");
                                         .)
 
-= "inicio" 
+= "inicio"                              (. objCode.setMainPC(); .)
   instrucoes 
   "fim"                                 (. ofuncAtual.locais = ts.escopoAtual.locais;
                                            ts.fecharEscopo();
